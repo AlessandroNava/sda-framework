@@ -15,7 +15,7 @@ const
 implementation
 
 uses
-  sdaSysUtils, sdaWindows, sdaApplication, sdaWinCreate, sdaWinControl,
+  sdaSysUtils, sdaWindows, sdaApplication, sdaWindowCreate, sdaWindowControl,
   sdaHelpers, sdaGraphics;
 
 type

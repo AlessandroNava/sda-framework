@@ -1,4 +1,4 @@
-unit sdaDlgCreate;
+unit sdaDialogCreate;
 
 interface
 

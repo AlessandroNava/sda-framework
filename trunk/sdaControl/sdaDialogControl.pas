@@ -1,4 +1,4 @@
-unit sdaDlgControl;
+unit sdaDialogControl;
 
 interface
 

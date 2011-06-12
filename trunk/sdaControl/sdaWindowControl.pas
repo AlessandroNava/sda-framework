@@ -1,4 +1,4 @@
-unit sdaWinControl;
+unit sdaWindowControl;
 
 interface
 
