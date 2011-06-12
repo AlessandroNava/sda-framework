@@ -7,14 +7,10 @@ program sda;
 uses
   Messages,
   sdaButtonControl in 'sdaControl\sdaButtonControl.pas',
-  sdaDlgControl in 'sdaControl\sdaDlgControl.pas',
   sdaImageListControl in 'sdaControl\sdaImageListControl.pas',
   sdaNotifyIcon in 'sdaControl\sdaNotifyIcon.pas',
   sdaProgressBarControl in 'sdaControl\sdaProgressBarControl.pas',
   sdaToolTipControl in 'sdaControl\sdaToolTipControl.pas',
-  sdaWinControl in 'sdaControl\sdaWinControl.pas',
-  sdaDlgCreate in 'sdaCreate\sdaDlgCreate.pas',
-  sdaWinCreate in 'sdaCreate\sdaWinCreate.pas',
   sdaApplication in 'sdaUnits\sdaApplication.pas',
   sdaClasses in 'sdaUnits\sdaClasses.pas',
   sdaCommCtrl in 'sdaUnits\sdaCommCtrl.pas',
@@ -26,7 +22,11 @@ uses
   sdaSysUtils in 'sdaUnits\sdaSysUtils.pas',
   sdaWindows in 'sdaUnits\sdaWindows.pas',
   sdaTestControl in 'sdaTestControl.pas',
-  sdaMenuControl in 'sdaControl\sdaMenuControl.pas';
+  sdaMenuControl in 'sdaControl\sdaMenuControl.pas',
+  sdaDialogCreate in 'sdaCreate\sdaDialogCreate.pas',
+  sdaWindowCreate in 'sdaCreate\sdaWindowCreate.pas',
+  sdaWindowControl in 'sdaControl\sdaWindowControl.pas',
+  sdaDialogControl in 'sdaControl\sdaDialogControl.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;
