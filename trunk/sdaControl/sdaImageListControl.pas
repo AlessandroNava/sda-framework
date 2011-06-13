@@ -4,8 +4,10 @@ interface
 
 // http://msdn.microsoft.com/en-us/library/bb761391(VS.85).aspx
 
+{$INCLUDE 'sda.inc'}
+
 uses
-  Windows, sdaGraphics;
+  sdaWindows, sdaGraphics;
 
 type
   HIMAGELIST = THandle;
