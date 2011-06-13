@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, Messages, ShellAPI;
+  sdaWindows, sdaMessages, ShellAPI;
 
 type
   TNotifyIconDataExW = record

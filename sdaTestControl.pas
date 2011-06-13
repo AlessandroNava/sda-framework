@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  Messages;
+  sdaMessages;
 
 const
   WC_TESTCONTROL = 'Sda.Test';

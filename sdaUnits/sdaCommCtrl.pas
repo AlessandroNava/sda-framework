@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
- sdaWindows, Messages;
+ sdaWindows, sdaMessages;
 
 type
   HIMAGELIST = THandle;

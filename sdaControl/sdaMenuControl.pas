@@ -2,8 +2,10 @@ unit sdaMenuControl;
 
 interface
 
+{$INCLUDE 'sda.inc'}
+
 uses
-  Windows;
+  sdaWindows;
 
 type
   TSdaMenuControl = record

@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, Messages, sdaCommCtrl;
+  sdaWindows, sdaMessages, sdaCommCtrl;
 
 // http://msdn.microsoft.com/en-us/library/bb775943(VS.85).aspx
 

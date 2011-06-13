@@ -5,7 +5,6 @@ program sda;
 {$R 'dlg.res' 'dlg.rc'}
 
 uses
-  Messages,
   sdaButtonControl in 'sdaControl\sdaButtonControl.pas',
   sdaImageListControl in 'sdaControl\sdaImageListControl.pas',
   sdaNotifyIcon in 'sdaControl\sdaNotifyIcon.pas',
@@ -26,7 +25,8 @@ uses
   sdaDialogCreate in 'sdaCreate\sdaDialogCreate.pas',
   sdaWindowCreate in 'sdaCreate\sdaWindowCreate.pas',
   sdaWindowControl in 'sdaControl\sdaWindowControl.pas',
-  sdaDialogControl in 'sdaControl\sdaDialogControl.pas';
+  sdaDialogControl in 'sdaControl\sdaDialogControl.pas',
+  sdaMessages in 'sdaUnits\sdaMessages.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;

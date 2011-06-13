@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, Messages, sdaSysUtils;
+  sdaWindows, sdaMessages, sdaSysUtils;
 
 const
   SDAM_BASE = WM_APP + $3000;
