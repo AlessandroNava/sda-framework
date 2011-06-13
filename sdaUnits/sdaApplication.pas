@@ -43,9 +43,6 @@ type
 
   TSdaApplicationClass = class of TSdaApplication;
 
-var
-  MainApplication: TSdaApplication;
-
 type
   TMsgDlgType = (mtWarning, mtError, mtInformation, mtConfirmation, mtCustom);
   TMsgDlgButtons = (mbOK, mbOKCancel, mbYesNo, mbYesNoCancel,
@@ -101,15 +98,12 @@ begin
   if not Assigned(ApplicationClass) then
     ApplicationClass := TSdaApplication;
   Application := ApplicationClass.Create;
-  InterlockedCompareExchangePointer(Pointer(MainApplication), Application, nil);
 end;
 
 procedure SdaApplicationFinalize;
 var
   TempApp: TSdaApplication;
 begin
-  TempApp := InterlockedCompareExchangePointer(Pointer(MainApplication), nil, Application);
-  if TempApp <> Application then TempApp.Free;
   TempApp := Application;
   Application := nil;
   TempApp.Free;

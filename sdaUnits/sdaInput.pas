@@ -29,6 +29,7 @@ type
       write SetDoubleClickTime;
 
     procedure SwapButtons(Swap: Boolean);
+    procedure TrackEvent(Window: HWND; Flags: DWORD; HoverTime: DWORD = HOVER_DEFAULT);
   end;
 
   TSdaKeyboard = record
@@ -132,6 +133,18 @@ end;
 procedure TSdaMouse.SwapButtons(Swap: Boolean);
 begin
   SwapMouseButton(Swap);
+end;
+
+procedure TSdaMouse.TrackEvent(Window: HWND; Flags, HoverTime: DWORD);
+var
+  tme: TTrackMouseEvent;
+begin
+  FillChar(tme, SizeOf(tme), 0);
+  tme.cbSize := SizeOf(tme);
+  tme.dwFlags := Flags;
+  tme.hwndTrack := Window;
+  tme.dwHoverTime := HoverTime;
+  TrackMouseEvent(tme);
 end;
 
 function TSdaMouse.GetMousePresent: Boolean;
