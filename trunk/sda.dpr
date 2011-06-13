@@ -26,7 +26,9 @@ uses
   sdaWindowCreate in 'sdaCreate\sdaWindowCreate.pas',
   sdaWindowControl in 'sdaControl\sdaWindowControl.pas',
   sdaDialogControl in 'sdaControl\sdaDialogControl.pas',
-  sdaMessages in 'sdaUnits\sdaMessages.pas';
+  sdaMessages in 'sdaUnits\sdaMessages.pas',
+  sdaThreads in 'sdaUnits\sdaThreads.pas',
+  sdaActiveX in 'sdaUnits\sdaActiveX.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;

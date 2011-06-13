@@ -4,9 +4,12 @@ interface
 
 {$INCLUDE 'sda.inc'}
 
+uses
+  sdaSysUtils, {$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}sdaWindows, sdaActiveX{$ENDIF};
+
 type
   TSdaStrings = class abstract(TObject)
-  private
+  strict protected
     function GetCount: Integer; virtual; abstract;
     function GetStrings(Index: Integer): string; virtual; abstract;
     procedure SetCount(const Value: Integer); virtual; abstract;
@@ -28,9 +31,10 @@ type
   end;
 
   TSdaStringList = class(TSdaStrings)
-  private
+  strict private
     FStrings: array of string;
     FLineSeparator: string;
+  strict protected
     function GetCount: Integer; override;
     function GetStrings(Index: Integer): string; override;
     procedure SetCount(const Value: Integer); override;
@@ -45,10 +49,65 @@ type
     procedure Insert(Index: Integer; const Value: string); override;
   end;
 
-implementation
+  TSeekOrigin = (soBeginning, soCurrent, soEnd);
 
-uses
-  sdaSysUtils;
+  EReadError = class(Exception);
+  EWriteError = class(Exception);
+
+  TSdaStream = class({$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}TInterfacedObject, IStream,
+    ISequentialStream{$ELSE}TObject{$ENDIF})
+  {$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}
+  strict private
+    { ISequentialStream }
+    function ISequentialStream.Read = ISS_Read;
+    function ISequentialStream.Write = ISS_Write;
+    function ISS_Read(pv: Pointer; cb: Longint; pcbRead: PLongint): HRESULT; stdcall;
+    function ISS_Write(pv: Pointer; cb: Longint; pcbWritten: PLongint): HRESULT; stdcall;
+    { IStream }
+    function IStream.Read = ISS_Read;
+    function IStream.Write = ISS_Write;
+    function IStream.Seek = IS_Seek;
+    function IStream.SetSize = IS_SetSize;
+    function IStream.CopyTo = IS_CopyTo;
+    function IStream.Commit = IS_Commit;
+    function IStream.Revert = IS_Revert;
+    function IStream.LockRegion = IS_LockRegion;
+    function IStream.UnlockRegion = IS_UnlockRegion;
+    function IStream.Stat = IS_Stat;
+    function IStream.Clone = IS_Clone;
+
+    function IS_Seek(dlibMove: Largeint; dwOrigin: Longint;
+      out libNewPosition: Largeint): HRESULT; stdcall;
+    function IS_SetSize(libNewSize: Largeint): HRESULT; stdcall;
+    function IS_CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint;
+      out cbWritten: Largeint): HRESULT; stdcall;
+    function IS_Commit(grfCommitFlags: Longint): HRESULT; stdcall;
+    function IS_Revert: HRESULT; stdcall;
+    function IS_LockRegion(libOffset: Largeint; cb: Largeint;
+      dwLockType: Longint): HRESULT; stdcall;
+    function IS_UnlockRegion(libOffset: Largeint; cb: Largeint;
+      dwLockType: Longint): HRESULT; stdcall;
+    function IS_Stat(out statstg: TStatStg; grfStatFlag: Longint): HRESULT; stdcall;
+    function IS_Clone(out stm: IStream): HRESULT; stdcall;
+  {$ENDIF}
+  strict private
+    function GetPosition: Int64;
+    procedure SetPosition(const Pos: Int64);
+  strict protected
+    function GetSize: Int64; virtual;
+    procedure SetSize(const NewSize: Int64); virtual;
+  public
+    function Read(var Buffer; Count: Longint): Longint; virtual; abstract;
+    function Write(const Buffer; Count: Longint): Longint; virtual; abstract;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual;
+    procedure ReadBuffer(var Buffer; Count: Longint);
+    procedure WriteBuffer(const Buffer; Count: Longint);
+    function CopyFrom(Source: TSdaStream; Count: Int64): Int64;
+    property Position: Int64 read GetPosition write SetPosition;
+    property Size: Int64 read GetSize write SetSize;
+  end;
+
+implementation
 
 { TSdaStringList }
 
@@ -156,6 +215,232 @@ begin
       j := n + Length(LineSeparator);
     end;
   end;
+end;
+
+{ TSdaStream }
+
+{$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}
+function TSdaStream.ISS_Read(pv: Pointer; cb: Integer;
+  pcbRead: PLongint): HRESULT;
+var
+  NumRead: Longint;
+begin
+  try
+    if pv = nil then Exit(STG_E_INVALIDPOINTER);
+    NumRead := Read(pv^, cb);
+    if pcbRead <> Nil then pcbRead^ := NumRead;
+    Result := S_OK;
+  except
+    Result := S_FALSE;
+  end;
+end;
+
+function TSdaStream.ISS_Write(pv: Pointer; cb: Integer;
+  pcbWritten: PLongint): HRESULT;
+var
+  NumWritten: Longint;
+begin
+  try
+    if pv = nil then Exit(STG_E_INVALIDPOINTER);
+    NumWritten := Write(pv^, cb);
+    if pcbWritten <> Nil then pcbWritten^ := NumWritten;
+    Result := S_OK;
+  except
+    Result := STG_E_CANTSAVE;
+  end;
+end;
+
+function TSdaStream.IS_Clone(out stm: IStream): HRESULT;
+begin
+  Result := E_NOTIMPL;
+end;
+
+function TSdaStream.IS_Commit(grfCommitFlags: Integer): HRESULT;
+begin
+  Result := S_OK;
+end;
+
+function TSdaStream.IS_CopyTo(stm: IStream; cb: Largeint; out cbRead,
+  cbWritten: Largeint): HRESULT;
+const
+  MaxBufSize = 1024 * 1024;  // 1mb
+var
+  Buffer: array of Byte;
+  BufSize, n, i, r: Integer;
+  BytesRead, BytesWritten, W: LargeInt;
+begin
+  Result := S_OK;
+  BytesRead := 0;
+  BytesWritten := 0;
+  try
+    if cb > MaxBufSize then BufSize := MaxBufSize else BufSize := Integer(cb);
+    SetLength(Buffer, BufSize);
+    while cb > 0 do
+    begin
+      if cb > MaxInt then i := MaxInt else i := cb;
+      while i > 0 do
+      begin
+        if i > BufSize then n := BufSize else n := i;
+        r := Read(Buffer[0], n);
+        if r = 0 then Exit; // The end of the stream was hit.
+        Inc(BytesRead, r);
+        W := 0;
+        Result := stm.Write(@Buffer[0], r, @W);
+        Inc(BytesWritten, W);
+        if (Result = S_OK) and (Integer(W) <> r) then Result := E_FAIL;
+        if Result <> S_OK then Exit;
+        Dec(i, r); Dec(cb, r);
+      end;
+    end;
+    if (@cbWritten <> nil) then cbWritten := BytesWritten;
+    if (@cbRead <> nil) then cbRead := BytesRead;
+  except
+    Result := E_UNEXPECTED;
+  end;
+end;
+
+function TSdaStream.IS_LockRegion(libOffset, cb: Largeint;
+  dwLockType: Integer): HRESULT;
+begin
+  Result := STG_E_INVALIDFUNCTION;
+end;
+
+function TSdaStream.IS_Revert: HRESULT;
+begin
+  Result := STG_E_REVERTED;
+end;
+
+function TSdaStream.IS_Seek(dlibMove: Largeint; dwOrigin: Integer;
+  out libNewPosition: Largeint): HRESULT;
+var
+  NewPos: LargeInt;
+begin
+  try
+    if (dwOrigin < STREAM_SEEK_SET) or (dwOrigin > STREAM_SEEK_END) then
+      Exit(STG_E_INVALIDFUNCTION);
+    NewPos := Seek(dlibMove, TSeekOrigin(dwOrigin));
+    if @libNewPosition <> nil then libNewPosition := NewPos;
+    Result := S_OK;
+  except
+    Result := STG_E_INVALIDPOINTER;
+  end;
+end;
+
+function TSdaStream.IS_SetSize(libNewSize: Largeint): HRESULT;
+begin
+  try
+    Size := libNewSize;
+    if libNewSize <> Size then Result := E_FAIL else Result := S_OK;
+  except
+    Result := E_UNEXPECTED;
+  end;
+end;
+
+function TSdaStream.IS_Stat(out statstg: TStatStg;
+  grfStatFlag: Integer): HRESULT;
+begin
+  Result := S_OK;
+  try
+    if @statstg <> nil then
+      with statstg do
+      begin
+        dwType := STGTY_STREAM;
+        cbSize := Size;
+        mTime.dwLowDateTime := 0;
+        mTime.dwHighDateTime := 0;
+        cTime.dwLowDateTime := 0;
+        cTime.dwHighDateTime := 0;
+        aTime.dwLowDateTime := 0;
+        aTime.dwHighDateTime := 0;
+        grfLocksSupported := LOCK_WRITE;
+      end;
+    if grfStatFlag and STATFLAG_NONAME = STATFLAG_NONAME then
+      statstg.pwcsName := nil;
+  except
+    Result := E_UNEXPECTED;
+  end;
+end;
+
+function TSdaStream.IS_UnlockRegion(libOffset, cb: Largeint;
+  dwLockType: Integer): HRESULT;
+begin
+  Result := STG_E_INVALIDFUNCTION;
+end;
+{$ENDIF}
+
+procedure TSdaStream.ReadBuffer(var Buffer; Count: Integer);
+var
+  LTotalCount,
+  LReadCount: Longint;
+begin
+  { Perform a read directly. Most of the time this will succeed
+    without the need to go into the WHILE loop. }
+  LTotalCount := Read(Buffer, Count);
+  while LTotalCount < Count do
+  begin
+    { Try to read a contiguous block of <Count> size }
+    LReadCount := Read(PByte(NativeInt(@Buffer) + LTotalCount)^,
+      Count - LTotalCount);
+    { Check if we read something and decrease the number of bytes left to read }
+    if LReadCount <= 0 then raise EReadError.Create('Stream read error')
+      else Inc(LTotalCount, LReadCount);
+  end
+end;
+
+function TSdaStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+begin
+  Result := 0;
+end;
+
+procedure TSdaStream.SetPosition(const Pos: Int64);
+begin
+  Seek(Pos, soBeginning);
+end;
+
+procedure TSdaStream.SetSize(const NewSize: Int64);
+begin
+end;
+
+procedure TSdaStream.WriteBuffer(const Buffer; Count: Integer);
+begin
+end;
+
+function TSdaStream.CopyFrom(Source: TSdaStream; Count: Int64): Int64;
+const
+  MaxBufSize = $F000;
+var
+  BufSize, N: Integer;
+  Buffer: array of Byte;
+begin
+  if Count = 0 then
+  begin
+    Source.Position := 0;
+    Count := Source.Size;
+  end;
+  Result := Count;
+  if Count > MaxBufSize then BufSize := MaxBufSize else BufSize := Count;
+  SetLength(Buffer, BufSize);
+  while Count <> 0 do
+  begin
+    if Count > BufSize then N := BufSize else N := Count;
+    Source.ReadBuffer(Buffer[0], N);
+    WriteBuffer(Buffer[0], N);
+    Dec(Count, N);
+  end;
+end;
+
+function TSdaStream.GetPosition: Int64;
+begin
+  Result := Seek(0, soCurrent);
+end;
+
+function TSdaStream.GetSize: Int64;
+var
+  Pos: Int64;
+begin
+  Pos := Seek(0, soCurrent);
+  Result := Seek(0, soEnd);
+  Seek(Pos, soBeginning);
 end;
 
 end.
