@@ -74,8 +74,8 @@
 			<DCCReference Include="sdaControl\sdaWindowControl.pas"/>
 			<DCCReference Include="sdaControl\sdaDialogControl.pas"/>
 			<DCCReference Include="sdaUnits\sdaMessages.pas"/>
-			<DCCReference Include="sdaUnits\sdaThreads.pas"/>
 			<DCCReference Include="sdaUnits\sdaActiveX.pas"/>
+			<DCCReference Include="sdaUnits\sdaProcess.pas"/>
 			<None Include="sda.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>
