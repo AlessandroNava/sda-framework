@@ -21060,19 +21060,6 @@ function MultinetGetConnectionPerformanceW(lpNetResource: PNetResourceW;
 
 { Translated from DDE.H }
 
-const
-  WM_DDE_FIRST      = $03E0;
-  WM_DDE_INITIATE   = WM_DDE_FIRST;
-  WM_DDE_TERMINATE  = WM_DDE_FIRST+1;
-  WM_DDE_ADVISE     = WM_DDE_FIRST+2;
-  WM_DDE_UNADVISE   = WM_DDE_FIRST+3;
-  WM_DDE_ACK        = WM_DDE_FIRST+4;
-  WM_DDE_DATA       = WM_DDE_FIRST+5;
-  WM_DDE_REQUEST    = WM_DDE_FIRST+6;
-  WM_DDE_POKE       = WM_DDE_FIRST+7;
-  WM_DDE_EXECUTE    = WM_DDE_FIRST+8;
-  WM_DDE_LAST       = WM_DDE_FIRST+8;
-
 { Constants used for a WM_DDE_ACK message sent in responce to a WM_DDE_DATA
   WM_DDE_REQUEST, WM_DDE_POKE, WM_DDE_ADVISE, or WM_DDE_UNADVISE message.
   For example
@@ -21253,6 +21240,22 @@ function SetWindowLongPtrA(hWnd: HWND; nIndex: Integer; dwNewLong: LONG_PTR): LO
 function GetWindowLongPtrW(hWnd: HWND; nIndex: Integer): LONG_PTR; stdcall;
 function SetWindowLongPtrW(hWnd: HWND; nIndex: Integer; dwNewLong: LONG_PTR): LONG_PTR; stdcall;
 
+const
+  GCLP_HBRBACKGROUND = -10;
+  GCLP_HCURSOR = -12;
+  GCLP_HICON = -14;
+  GCLP_HICONSM = -34;
+  GCLP_HMODULE = -16;
+  GCLP_MENUNAME = -8;
+  GCLP_WNDPROC = -24;
+
+function GetClassLongPtr(hWnd: HWND; nIndex: Integer): LONG_PTR; stdcall;
+function GetClassLongPtrA(hWnd: HWND; nIndex: Integer): LONG_PTR; stdcall;
+function GetClassLongPtrW(hWnd: HWND; nIndex: Integer): LONG_PTR; stdcall;
+function SetClassLongPtr(hWnd: HWND; nIndex: Integer; dwNewLong: Longint): LONG_PTR; stdcall;
+function SetClassLongPtrA(hWnd: HWND; nIndex: Integer; dwNewLong: Longint): LONG_PTR; stdcall;
+function SetClassLongPtrW(hWnd: HWND; nIndex: Integer; dwNewLong: Longint): LONG_PTR; stdcall;
+
 type
   HGESTUREINFO = type LongWord;
 
@@ -21411,6 +21414,13 @@ const
 // Additional helpers
 function RotateAngleFromArgument(Arg: Word): Double; inline;
 function InertiaVectorFromArgument(Arg: UInt64): TSmallPoint; inline;
+
+const
+  LAYOUT_LTR = $00000000;
+  LAYOUT_RTL = $00000001;
+
+function GetProcessDefaultLayout(var pdwDefaultLayout: DWORD): BOOL; stdcall;
+function SetProcessDefaultLayout(dwDefaultLayout: DWORD): BOOL; stdcall;
 
 const
   advapi32  = 'advapi32.dll';
@@ -24664,6 +24674,13 @@ function GetWindowLongPtrA; external user32 name 'GetWindowLongPtrA';
 function SetWindowLongPtrA; external user32 name 'SetWindowLongPtrA';
 function GetWindowLongPtrW; external user32 name 'GetWindowLongPtrW';
 function SetWindowLongPtrW; external user32 name 'SetWindowLongPtrW';
+
+function GetClassLongPtr; external user32 name 'GetClassLongPtr';
+function GetClassLongPtrA; external user32 name 'GetClassLongPtrA';
+function GetClassLongPtrW; external user32 name 'GetClassLongPtrW';
+function SetClassLongPtr; external user32 name 'SetClassLongPtr';
+function SetClassLongPtrA; external user32 name 'SetClassLongPtrA';
+function SetClassLongPtrW; external user32 name 'SetClassLongPtrW';
 {$ELSE}
 function GetWindowLongPtr; external user32 name 'GetWindowLongW';
 function SetWindowLongPtr; external user32 name 'SetWindowLongW';
@@ -24671,6 +24688,13 @@ function GetWindowLongPtrA; external user32 name 'GetWindowLongA';
 function SetWindowLongPtrA; external user32 name 'SetWindowLongA';
 function GetWindowLongPtrW; external user32 name 'GetWindowLongW';
 function SetWindowLongPtrW; external user32 name 'SetWindowLongW';
+
+function GetClassLongPtr; external user32 name 'GetClassLong';
+function GetClassLongPtrA; external user32 name 'GetClassLongA';
+function GetClassLongPtrW; external user32 name 'GetClassLongW';
+function SetClassLongPtr; external user32 name 'SetClassLong';
+function SetClassLongPtrA; external user32 name 'SetClassLongA';
+function SetClassLongPtrW; external user32 name 'SetClassLongW';
 {$ENDIF}
 
 // #define MAKELANGID(p, s)       ((((WORD  )(s)) << 10) | (WORD  )(p))
@@ -24839,6 +24863,9 @@ function _OUTLINETEXTMETRICW.GetStyleName: PWideChar;
 begin
   Result := PWideChar(NativeUInt(@Self) + NativeUInt(otmpStyleName));
 end;
+
+function GetProcessDefaultLayout; external user32 name 'GetProcessDefaultLayout';
+function SetProcessDefaultLayout; external user32 name 'SetProcessDefaultLayout';
 
 initialization
   InitVersionInfo;

@@ -40,7 +40,7 @@ function SdaGetInstancePointer(Window: HWND): Pointer;
 var
   n: Integer;
 begin
-  n := GetClassLong(Window, GCL_CBWNDEXTRA);
+  n := GetClassLongPtr(Window, GCL_CBWNDEXTRA);
   if n < SizeOf(Pointer) then Exit(nil);
   Result := Pointer(GetWindowLongPtr(Window, n - SizeOf(Pointer)));
 end;
@@ -56,11 +56,11 @@ var
 begin
   if uMsg = WM_NCCREATE then
   begin
-    n := GetClassLong(hWnd, GCL_CBWNDEXTRA);
+    n := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA);
     if n >= SizeOf(Pointer) then
     begin
       Dec(n, SizeOf(Pointer));
-      cb := GetClassLong(hWnd, SDACL_INSTANCESIZE);
+      cb := GetClassLongPtr(hWnd, SDACL_INSTANCESIZE);
       if cb > 0 then
       begin
         GetMem(SelfPtr, cb);
@@ -70,7 +70,7 @@ begin
     end;
   end;
 
-  WndProc := Pointer(GetClassLong(hWnd, SDACL_WINDOWPROC));
+  WndProc := Pointer(GetClassLongPtr(hWnd, SDACL_WINDOWPROC));
   if WndProc <> nil then
   begin
     Msg.Msg := uMsg;
@@ -82,7 +82,7 @@ begin
 
   if uMsg = WM_NCDESTROY then
   begin
-    n := GetClassLong(hWnd, GCL_CBWNDEXTRA);
+    n := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA);
     if n >= SizeOf(Pointer) then
     begin
       Dec(n, SizeOf(Pointer));
@@ -125,9 +125,9 @@ begin
       0, WndClass.hInstance, nil);
     if h <> 0 then
     begin
-      SetClassLong(h, SDACL_INSTANCESIZE, ClsDataSize);
-      SetClassLong(h, SDACL_WINDOWPROC, NativeInt(WndProc));
-      SetClassLong(h, GCL_WNDPROC, NativeInt(@SdaWindowProc));
+      SetClassLongPtr(h, SDACL_INSTANCESIZE, ClsDataSize);
+      SetClassLongPtr(h, SDACL_WINDOWPROC, NativeInt(WndProc));
+      SetClassLongPtr(h, GCL_WNDPROC, NativeInt(@SdaWindowProc));
       DestroyWindow(h);
     end;
   end;

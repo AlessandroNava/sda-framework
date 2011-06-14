@@ -93,7 +93,7 @@ function SdaSetAssociatedObject(hWnd: HWND; const Obj: TObject): TObject;
 var
   GWL_SDAOBJ: Integer;
 begin
-  GWL_SDAOBJ := GetClassLong(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
+  GWL_SDAOBJ := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
   if GWL_SDAOBJ < 0 then Exit(nil);
   Result := TObject(SetWindowLongPtr(hWnd, GWL_SDAOBJ, NativeInt(Obj)));
 end;
@@ -102,7 +102,7 @@ function SdaGetAssociatedObject(hWnd: HWND): TObject;
 var
   GWL_SDAOBJ: Integer;
 begin
-  GWL_SDAOBJ := GetClassLong(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
+  GWL_SDAOBJ := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
   if GWL_SDAOBJ < 0 then Exit(nil);
   Result := TObject(GetWindowLongPtr(hWnd, GWL_SDAOBJ));
 end;
@@ -113,10 +113,10 @@ var
   cbCls: Integer;
 begin
   if hWnd = 0 then Exit(nil);
-  cbCls := GetClassLong(hWnd, GCL_CBCLSEXTRA);
+  cbCls := GetClassLongPtr(hWnd, GCL_CBCLSEXTRA);
   if cbCls < SizeOf(Pointer) then Exit(nil);
   Dec(cbCls, SizeOf(Pointer));
-  sdaClass := Pointer(GetClassLong(hWnd, cbCls));
+  sdaClass := Pointer(GetClassLongPtr(hWnd, cbCls));
   if not Assigned(sdaClass) then Exit(nil);
   Result := sdaClass.Create;
   SdaSetAssociatedObject(hWnd, Result);
