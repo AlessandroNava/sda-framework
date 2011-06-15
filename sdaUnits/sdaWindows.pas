@@ -24675,10 +24675,10 @@ function SetWindowLongPtrA; external user32 name 'SetWindowLongPtrA';
 function GetWindowLongPtrW; external user32 name 'GetWindowLongPtrW';
 function SetWindowLongPtrW; external user32 name 'SetWindowLongPtrW';
 
-function GetClassLongPtr; external user32 name 'GetClassLongPtr';
+function GetClassLongPtr; external user32 name 'GetClassLongPtrW';
 function GetClassLongPtrA; external user32 name 'GetClassLongPtrA';
 function GetClassLongPtrW; external user32 name 'GetClassLongPtrW';
-function SetClassLongPtr; external user32 name 'SetClassLongPtr';
+function SetClassLongPtr; external user32 name 'SetClassLongPtrW';
 function SetClassLongPtrA; external user32 name 'SetClassLongPtrA';
 function SetClassLongPtrW; external user32 name 'SetClassLongPtrW';
 {$ELSE}
@@ -24689,10 +24689,10 @@ function SetWindowLongPtrA; external user32 name 'SetWindowLongA';
 function GetWindowLongPtrW; external user32 name 'GetWindowLongW';
 function SetWindowLongPtrW; external user32 name 'SetWindowLongW';
 
-function GetClassLongPtr; external user32 name 'GetClassLong';
+function GetClassLongPtr; external user32 name 'GetClassLongW';
 function GetClassLongPtrA; external user32 name 'GetClassLongA';
 function GetClassLongPtrW; external user32 name 'GetClassLongW';
-function SetClassLongPtr; external user32 name 'SetClassLong';
+function SetClassLongPtr; external user32 name 'SetClassLongW';
 function SetClassLongPtrA; external user32 name 'SetClassLongA';
 function SetClassLongPtrW; external user32 name 'SetClassLongW';
 {$ENDIF}

@@ -6,10 +6,16 @@ program sda;
 
 uses
   sdaButtonControl in 'sdaControl\sdaButtonControl.pas',
+  sdaDialogControl in 'sdaControl\sdaDialogControl.pas',
   sdaImageListControl in 'sdaControl\sdaImageListControl.pas',
+  sdaMenuControl in 'sdaControl\sdaMenuControl.pas',
   sdaNotifyIcon in 'sdaControl\sdaNotifyIcon.pas',
   sdaProgressBarControl in 'sdaControl\sdaProgressBarControl.pas',
   sdaToolTipControl in 'sdaControl\sdaToolTipControl.pas',
+  sdaWindowControl in 'sdaControl\sdaWindowControl.pas',
+  sdaDialogCreate in 'sdaCreate\sdaDialogCreate.pas',
+  sdaWindowCreate in 'sdaCreate\sdaWindowCreate.pas',
+  sdaActiveX in 'sdaUnits\sdaActiveX.pas',
   sdaApplication in 'sdaUnits\sdaApplication.pas',
   sdaClasses in 'sdaUnits\sdaClasses.pas',
   sdaCommCtrl in 'sdaUnits\sdaCommCtrl.pas',
@@ -17,18 +23,12 @@ uses
   sdaHelpers in 'sdaUnits\sdaHelpers.pas',
   sdaIniFile in 'sdaUnits\sdaIniFile.pas',
   sdaInput in 'sdaUnits\sdaInput.pas',
+  sdaMessages in 'sdaUnits\sdaMessages.pas',
+  sdaProcess in 'sdaUnits\sdaProcess.pas',
   sdaScreen in 'sdaUnits\sdaScreen.pas',
   sdaSysUtils in 'sdaUnits\sdaSysUtils.pas',
   sdaWindows in 'sdaUnits\sdaWindows.pas',
-  sdaTestControl in 'sdaTestControl.pas',
-  sdaMenuControl in 'sdaControl\sdaMenuControl.pas',
-  sdaDialogCreate in 'sdaCreate\sdaDialogCreate.pas',
-  sdaWindowCreate in 'sdaCreate\sdaWindowCreate.pas',
-  sdaWindowControl in 'sdaControl\sdaWindowControl.pas',
-  sdaDialogControl in 'sdaControl\sdaDialogControl.pas',
-  sdaMessages in 'sdaUnits\sdaMessages.pas',
-  sdaActiveX in 'sdaUnits\sdaActiveX.pas',
-  sdaProcess in 'sdaUnits\sdaProcess.pas';
+  sdaTestControl in 'sdaTestControl.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;
