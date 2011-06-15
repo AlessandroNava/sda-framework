@@ -53,10 +53,16 @@
 				<Form>dlg.res</Form>
 			</RcCompile>
 			<DCCReference Include="sdaControl\sdaButtonControl.pas"/>
+			<DCCReference Include="sdaControl\sdaDialogControl.pas"/>
 			<DCCReference Include="sdaControl\sdaImageListControl.pas"/>
+			<DCCReference Include="sdaControl\sdaMenuControl.pas"/>
 			<DCCReference Include="sdaControl\sdaNotifyIcon.pas"/>
 			<DCCReference Include="sdaControl\sdaProgressBarControl.pas"/>
 			<DCCReference Include="sdaControl\sdaToolTipControl.pas"/>
+			<DCCReference Include="sdaControl\sdaWindowControl.pas"/>
+			<DCCReference Include="sdaCreate\sdaDialogCreate.pas"/>
+			<DCCReference Include="sdaCreate\sdaWindowCreate.pas"/>
+			<DCCReference Include="sdaUnits\sdaActiveX.pas"/>
 			<DCCReference Include="sdaUnits\sdaApplication.pas"/>
 			<DCCReference Include="sdaUnits\sdaClasses.pas"/>
 			<DCCReference Include="sdaUnits\sdaCommCtrl.pas"/>
@@ -64,18 +70,12 @@
 			<DCCReference Include="sdaUnits\sdaHelpers.pas"/>
 			<DCCReference Include="sdaUnits\sdaIniFile.pas"/>
 			<DCCReference Include="sdaUnits\sdaInput.pas"/>
+			<DCCReference Include="sdaUnits\sdaMessages.pas"/>
+			<DCCReference Include="sdaUnits\sdaProcess.pas"/>
 			<DCCReference Include="sdaUnits\sdaScreen.pas"/>
 			<DCCReference Include="sdaUnits\sdaSysUtils.pas"/>
 			<DCCReference Include="sdaUnits\sdaWindows.pas"/>
 			<DCCReference Include="sdaTestControl.pas"/>
-			<DCCReference Include="sdaControl\sdaMenuControl.pas"/>
-			<DCCReference Include="sdaCreate\sdaDialogCreate.pas"/>
-			<DCCReference Include="sdaCreate\sdaWindowCreate.pas"/>
-			<DCCReference Include="sdaControl\sdaWindowControl.pas"/>
-			<DCCReference Include="sdaControl\sdaDialogControl.pas"/>
-			<DCCReference Include="sdaUnits\sdaMessages.pas"/>
-			<DCCReference Include="sdaUnits\sdaActiveX.pas"/>
-			<DCCReference Include="sdaUnits\sdaProcess.pas"/>
 			<None Include="sda.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>

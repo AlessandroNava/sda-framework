@@ -146,12 +146,14 @@ end;
 
 function TSdaApplication.IsDialogMessage(var Message: TMsg): Boolean;
 var
-  wnd: HWND;
+  h, wnd: HWND;
 begin
-  wnd := GetForegroundWindow;
-  if wnd = 0 then Exit(false);
-  if GetWindowThreadProcessId(wnd, nil) <> GetCurrentThreadId then Result := false
-    else Result := sdaWindows.IsDialogMessage(wnd, Message);
+  h := Message.hwnd;
+  repeat
+    wnd := h;
+    h := GetParent(wnd);
+  until h = 0;
+  Result := sdaWindows.IsDialogMessage(wnd, Message);
 end;
 
 function TSdaApplication.TryGetMessage(var Message: TMsg): Boolean;

@@ -33,6 +33,9 @@ type
     class property MainThreadId: UINT read GetMainThreadId;
     class property DefaultLayout: TProcessDefaultLayout read GetDefaultLayout
       write SetDefaultLayout;
+
+//    class procedure EnablePrivilege(const Name: string); static;
+//    class procedure DisablePrivilege(const Name: string); static;
   end;
 
 var
@@ -45,6 +48,52 @@ var
   FMainThreadId: UINT;
 
 { TSdaProcess }
+
+(*class procedure TSdaProcess.DisablePrivilege(const Name: string);
+var
+  hToken: DWORD;
+  SeDebugNameValue: Int64;
+  tkp: TOKEN_PRIVILEGES;
+  ReturnLength: DWORD;
+begin
+  if not OpenProcessToken(INVALID_HANDLE_VALUE, TOKEN_ADJUST_PRIVILEGES or
+    TOKEN_QUERY, hToken) then Exit;
+  try
+    if not LookupPrivilegeValue(nil, PChar(Name), SeDebugNameValue) then Exit;
+
+    tkp.PrivilegeCount := 1;
+    tkp.Privileges[0].Luid := SeDebugNameValue;
+    tkp.Privileges[0].Attributes := 0; // Disable
+
+    if not AdjustTokenPrivileges(hToken, false, tkp, SizeOf(TOKEN_PRIVILEGES),
+      tkp, ReturnLength) then Exit;
+  finally
+    CloseHandle(hToken);
+  end;
+end;
+
+class procedure TSdaProcess.EnablePrivilege(const Name: string);
+var
+  hToken: DWORD;
+  SeDebugNameValue: Int64;
+  tkp: TOKEN_PRIVILEGES;
+  ReturnLength: DWORD;
+begin
+  if not OpenProcessToken(INVALID_HANDLE_VALUE, TOKEN_ADJUST_PRIVILEGES or
+    TOKEN_QUERY, hToken) then Exit;
+  try
+    if not LookupPrivilegeValue(nil, PChar(Name), SeDebugNameValue) then Exit;
+
+    tkp.PrivilegeCount := 1;
+    tkp.Privileges[0].Luid := SeDebugNameValue;
+    tkp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+
+    if not AdjustTokenPrivileges(hToken, false, tkp, SizeOf(TOKEN_PRIVILEGES),
+      tkp, ReturnLength) then Exit;
+  finally
+    CloseHandle(hToken);
+  end;
+end; *)
 
 class function TSdaProcess.GetCommandLine: string;
 begin
