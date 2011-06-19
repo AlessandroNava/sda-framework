@@ -73,7 +73,10 @@ operator := (Value: HMENU): TSdaMenuControl;
   public
     property Handle: HMENU read FHandle write SetHandle;
     procedure DestroyHandle;
+
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HMENU): TSdaPopupMenuControl;
+    {$ENDIF}
 
     {$IFDEF DELPHI}class {$ENDIF}function CreateHandle: HMENU; overload; static;
     {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Instance: HMODULE; MenuName: string;
@@ -101,7 +104,9 @@ operator := (Value: HMENU): TSdaPopupMenuControl;
   public
     property Handle: HMENU read FHandle write SetHandle;
     procedure DestroyHandle;
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HMENU): TSdaMainMenuControl;
+    {$ENDIF}
     {$IFDEF DELPHI}class {$ENDIF}function CreateHandle: HMENU; overload; static;
     {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Instance: HMODULE;
       MenuName: string): HMENU; overload; static;

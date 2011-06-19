@@ -36,6 +36,8 @@ type
 
     procedure EnablePrivilege(const Name: string);
     procedure DisablePrivilege(const Name: string);
+
+    procedure Exit(ExitCode: Integer = 0);
   end;
 
 var
@@ -93,6 +95,11 @@ begin
   finally
     CloseHandle(hToken);
   end;
+end;
+
+procedure TSdaCurrentProcess.Exit(ExitCode: Integer);
+begin
+  Halt(ExitCode);
 end;
 
 function TSdaCurrentProcess.GetCommandLine: string;
