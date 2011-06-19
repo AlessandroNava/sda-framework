@@ -23830,34 +23830,7 @@ function SetForegroundWindow; external user32 name 'SetForegroundWindow';
 function SetKeyboardState; external user32 name 'SetKeyboardState';
 procedure SetLastErrorEx; external user32 name 'SetLastErrorEx';
 
-type
-  TSetLayeredWindowAttributes = function (Hwnd: THandle; crKey: COLORREF;
-    bAlpha: Byte; dwFlags: DWORD): Boolean; stdcall;
-
-var
-  SetLayeredWindowAttributesTested: Boolean = False;
-  _SetLayeredWindowAttributes: TSetLayeredWindowAttributes = nil;
-
-function SetLayeredWindowAttributes(Hwnd: THandle; crKey: COLORREF; bAlpha: Byte; dwFlags: DWORD): Boolean;
-var
-  LModule: HMODULE;
-begin
-  Result := False;
-  if not SetLayeredWindowAttributesTested then
-  begin
-    LModule := GetModuleHandle(User32);
-    if LModule <> 0 then
-    begin
-      @_SetLayeredWindowAttributes := GetProcAddress(LModule, 'SetLayeredWindowAttributes');
-      if Assigned(_SetLayeredWindowAttributes) then
-        Result := _SetLayeredWindowAttributes(Hwnd, crKey, bAlpha, dwFlags);
-      SetLayeredWindowAttributesTested := True;
-    end;
-  end
-  else
-    if Assigned(_SetLayeredWindowAttributes) then
-      Result := _SetLayeredWindowAttributes(Hwnd, crKey, bAlpha, dwFlags);
-end;
+function SetLayeredWindowAttributes; external user32 name 'SetLayeredWindowAttributes';
 
 function SetMenu; external user32 name 'SetMenu';
 function SetMenuContextHelpId; external user32 name 'SetMenuContextHelpId';

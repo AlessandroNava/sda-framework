@@ -28,7 +28,7 @@ uses
   sdaScreen in 'sdaUnits\sdaScreen.pas',
   sdaSysUtils in 'sdaUnits\sdaSysUtils.pas',
   sdaWindows in 'sdaUnits\sdaWindows.pas',
-  sdaTestControl in 'sdaTestControl.pas';
+  sdaSystem in 'sdaUnits\sdaSystem.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;

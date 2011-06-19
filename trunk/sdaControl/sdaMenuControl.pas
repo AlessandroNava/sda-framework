@@ -31,7 +31,6 @@ type
     property Handle: HMENU read FHandle write SetHandle;
     procedure DestroyHandle;
     class operator Implicit(Value: HMENU): TSdaMenuControl;
-    class operator Explicit(const Value: TSdaMenuControl): HMENU;
 
     property ItemCaption[Index: Integer]: string read GetItemCaption
       write SetItemCaption;
@@ -142,11 +141,6 @@ procedure TSdaMenuControl.DestroyHandle;
 begin
   DestroyMenu(FHandle);
   FHandle := 0;
-end;
-
-class operator TSdaMenuControl.Explicit(const Value: TSdaMenuControl): HMENU;
-begin
-  Result := Value.Handle;
 end;
 
 function TSdaMenuControl.GetBackground: HBRUSH;

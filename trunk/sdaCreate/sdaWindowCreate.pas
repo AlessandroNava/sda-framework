@@ -5,118 +5,99 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, sdaMessages;
+  sdaSystem, sdaWindows, sdaMessages;
 
 type
   TSdaWindowProc = function(Window: HWND; var Message: TMessage): BOOL; stdcall;
 
-procedure SdaInitWindowClass(var WndClass: TWndClassEx);
-function SdaRegisterWindowClass(WndClass: TWndClassEx): Boolean;
-function SdaGetInstancePointer(Window: HWND): Pointer;
-procedure SdaDefProcessMessage(Window: HWND; var Message: TMessage);
+  TSdaWindowObject = class(TObject)
+  private
+    FHandle: HWND;
+  protected
+    property Handle: HWND read FHandle write FHandle;
+    procedure DestroyHandle;
+    procedure RegisteredMessage(var Message: TMessage); virtual;
+  public
+    constructor Create; virtual;
+    procedure DefaultHandler(var Message); override;
+
+    class function GetWindowClass(out WndClass: TWndClassEx): Boolean; virtual;
+  end;
+
+  TSdaWindowObjectClass = class of TSdaWindowObject;
+
+function SdaRegisterWindowClass(const ObjectClass: TSdaWindowObjectClass): Boolean;
 
 implementation
-
-procedure SdaDefProcessMessage(Window: HWND; var Message: TMessage);
-begin
-  Message.Result := DefWindowProc(Window, Message.Msg, Message.WParam,
-    Message.LParam);
-end;
-
-procedure SdaInitWindowClass(var WndClass: TWndClassEx);
-begin
-  FillChar(WndClass, SizeOf(WndClass), 0);
-  WndClass.cbSize := SizeOf(WndClass);
-  WndClass.hInstance := HInstance;
-  WndClass.hCursor := LoadCursor(0, IDC_ARROW);
-  WndClass.hbrBackground := COLOR_WINDOW + 1;
-end;
-
-const
-  SDACL_INSTANCESIZE = 0;
-  SDACL_WINDOWPROC = SizeOf(Pointer);
-
-function SdaGetInstancePointer(Window: HWND): Pointer;
-var
-  n: Integer;
-begin
-  n := GetClassLongPtr(Window, GCL_CBWNDEXTRA);
-  if n < SizeOf(Pointer) then Exit(nil);
-  Result := Pointer(GetWindowLongPtr(Window, n - SizeOf(Pointer)));
-end;
 
 function SdaWindowProc(hWnd: HWND; uMsg: UINT; wParam: WPARAM;
   lParam: LPARAM): LRESULT; stdcall;
 var
-  n, cb: Integer;
-  WndProc: Pointer;
-  SelfPtr: Pointer;
+  nObj, nClass: Integer;
+  ObjectClass: TSdaWindowObjectClass;
+  Obj: TSdaWindowObject;
   Msg: TMessage;
-  MsgHandled: BOOL;
 begin
-  if uMsg = WM_NCCREATE then
+  nObj := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
+  if nObj >= 0 then
   begin
-    n := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA);
-    if n >= SizeOf(Pointer) then
+    if uMsg = WM_NCCREATE then
     begin
-      Dec(n, SizeOf(Pointer));
-      cb := GetClassLongPtr(hWnd, SDACL_INSTANCESIZE);
-      if cb > 0 then
+      nClass := GetClassLongPtr(hWnd, GCL_CBCLSEXTRA) - SizeOf(Pointer);
+      if nClass >= 0 then
       begin
-        GetMem(SelfPtr, cb);
-        if SelfPtr <> nil then ZeroMemory(SelfPtr, cb);
-      end else SelfPtr := nil;
-      SetWindowLongPtr(hWnd, n, NativeInt(SelfPtr));
+        ObjectClass := Pointer(GetClassLongPtr(hWnd, nClass));
+        if Assigned(ObjectClass) then
+        begin
+          Obj := ObjectClass.Create;
+          Obj.Handle := hWnd;
+          SetWindowLongPtr(hWnd, nObj, NativeInt(Obj));
+        end;
+      end;
     end;
-  end;
 
-  WndProc := Pointer(GetClassLongPtr(hWnd, SDACL_WINDOWPROC));
-  if WndProc <> nil then
-  begin
-    Msg.Msg := uMsg;
-    Msg.WParam := wParam;
-    Msg.LParam := lParam;
-    Msg.Result := 0;
-    MsgHandled := TSdaWindowProc(WndProc)(hWnd, Msg);
-  end else MsgHandled := false;
-
-  if uMsg = WM_NCDESTROY then
-  begin
-    n := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA);
-    if n >= SizeOf(Pointer) then
+    Obj := Pointer(GetWindowLongPtr(hWnd, nObj));
+    if Assigned(Obj) then
     begin
-      Dec(n, SizeOf(Pointer));
-      SelfPtr := Pointer(SetWindowLongPtr(hWnd, n, NativeInt(nil)));
-      FreeMem(SelfPtr);
+      Msg.Msg := uMsg;
+      Msg.WParam := wParam;
+      Msg.LParam := lParam;
+      Msg.Result := 0;
+      Obj.Dispatch(Msg);
+      Result := Msg.Result;
+    end else Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+    if uMsg = WM_NCDESTROY then
+    begin
+      Obj := Pointer(SetWindowLongPtr(hWnd, nObj, NativeInt(nil)));
+      Obj.Free;
     end;
-  end;
-  if MsgHandled then Result := Msg.Result
-    else Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
+  end else Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
 end;
 
 { WndClass.cbClsExtra
-    На вході - розмір даних класу; замінюємо на 2 * SizeOf(Pointer) - для
-    зберігання оригінального значення cbClsExtra та вказівника на віконну
-    процедуру TSdaWindowProc
+    Збільшуємо на SizeOf(Pointer) - для зберігання вказівника на клас
   WndClass.cbWndExtra
-    Додаємо в кінці чотири байти для зберігання вказівника на дані класу
+    Збільшуємо на SizeOf(Pointer) - для зберігання вказівника на об'єкт
   WndClass.lpfnWndProc
-    На вході - вказівник на віконну процедуру типу TSdaWindowProc; замінюємо
-    на DefWindowProc, а оригінальний вказівник записуємо в екстрадані класу.
-    Спочатку встановлюємо DefWindowProc для того, щоб можна було створити
-    тимчасове вікно без негативних насліків, потім змінюємо на SdaWindowProc -
-    всі нові вікна будуть створюватись з новою віконною процедурою
+    На вході - вказівник на віконну процедуру типу; замінюємо на DefWindowProc,
+    ігноруючи початкове значення. Спочатку встановлюємо DefWindowProc для
+    того, щоб можна було створити тимчасове вікно без негативних насліків,
+    потім змінюємо на SdaWindowProc - всі нові вікна будуть створюватись з
+    новою віконною процедурою
 }
-function SdaRegisterWindowClass(WndClass: TWndClassEx): Boolean;
+function SdaRegisterWindowClass(const ObjectClass: TSdaWindowObjectClass): Boolean;
 var
+  WndClass: TWndClassEx;
   h: HWND;
-  ClsDataSize: Integer;
-  WndProc: Pointer;
 begin
-  ClsDataSize := WndClass.cbClsExtra;
-  WndClass.cbClsExtra := 2 * SizeOf(Pointer);
+  if not Assigned(ObjectClass) then Exit(false);
+  FillChar(WndClass, SizeOf(WndClass), 0);
+  WndClass.cbSize := SizeOf(WndClass);
+  if not ObjectClass.GetWindowClass(WndClass) then Exit(false);
+
+  WndClass.cbClsExtra := WndClass.cbClsExtra + SizeOf(Pointer);
   WndClass.cbWndExtra := WndClass.cbWndExtra + SizeOf(Pointer);
-  WndProc := WndClass.lpfnWndProc;
   WndClass.lpfnWndProc := @DefWindowProc;
   Result := RegisterClassEx(WndClass) <> 0;
   if Result then
@@ -125,12 +106,48 @@ begin
       0, WndClass.hInstance, nil);
     if h <> 0 then
     begin
-      SetClassLongPtr(h, SDACL_INSTANCESIZE, ClsDataSize);
-      SetClassLongPtr(h, SDACL_WINDOWPROC, NativeInt(WndProc));
+      SetClassLongPtr(h, WndClass.cbClsExtra - SizeOf(Pointer), NativeInt(ObjectClass));
       SetClassLongPtr(h, GCL_WNDPROC, NativeInt(@SdaWindowProc));
       DestroyWindow(h);
     end;
   end;
+end;
+
+{ TSdaWindowObject }
+
+class function TSdaWindowObject.GetWindowClass(out WndClass: TWndClassEx): Boolean;
+begin
+  FillChar(WndClass, SizeOf(WndClass), 0);
+  WndClass.cbSize := SizeOf(WndClass);
+  WndClass.hInstance := HInstance;
+  WndClass.hCursor := LoadCursor(0, IDC_ARROW);
+  WndClass.hbrBackground := COLOR_WINDOW + 1;
+  Result := false;
+end;
+
+procedure TSdaWindowObject.RegisteredMessage(var Message: TMessage);
+begin
+  Message.Result := 0;
+end;
+
+constructor TSdaWindowObject.Create;
+begin
+  inherited Create;
+end;
+
+procedure TSdaWindowObject.DefaultHandler(var Message);
+begin
+  with TMessage(Message) do
+  begin
+    if Msg >= $C000 then RegisteredMessage(TMessage(Message))
+      else Result := DefWindowProc(Handle, Msg, WParam, LParam);
+  end;
+end;
+
+procedure TSdaWindowObject.DestroyHandle;
+begin
+  if IsWindow(Handle) then
+    PostMessage(Handle, SDAM_DESTROYWINDOW, 0, 0);
 end;
 
 end.

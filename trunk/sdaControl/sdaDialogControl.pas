@@ -21,7 +21,6 @@ type
     procedure SetItemVisible(ItemID: Integer; const Value: Boolean);
   public
     property Handle: HWND read FHandle write FHandle;
-    class operator Explicit(Value: TSdaDialogControl): HWND;
     class operator Implicit(Value: HWND): TSdaDialogControl;
 
     property ItemHandle[ItemID: Integer]: HWND read GetItemHandle;
@@ -56,11 +55,6 @@ end;
 class operator TSdaDialogControl.Implicit(Value: HWND): TSdaDialogControl;
 begin
   Result.Handle := Value;
-end;
-
-class operator TSdaDialogControl.Explicit(Value: TSdaDialogControl): HWND;
-begin
-  Result := Value.Handle;
 end;
 
 procedure TSdaDialogControl.ChangeItemID(OldID, NewID: Integer);
