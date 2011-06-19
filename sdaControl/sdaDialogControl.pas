@@ -21,6 +21,8 @@ type
     procedure SetItemVisible(ItemID: Integer; const Value: Boolean);
   public
     property Handle: HWND read FHandle write FHandle;
+    procedure DestroyHandle;
+
     {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaDialogControl;
     {$ENDIF}
@@ -52,6 +54,12 @@ operator := (Value: HWND): TSdaDialogControl;
 implementation
 
 { TSdaDialogControl }
+
+procedure TSdaDialogControl.DestroyHandle;
+begin
+  DestroyWindow(Handle);
+  FHandle := 0;
+end;
 
 procedure TSdaDialogControl.ChangeItemID(hwndItem: HWND; NewID: Integer);
 begin

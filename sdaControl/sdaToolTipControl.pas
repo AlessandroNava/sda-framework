@@ -355,6 +355,7 @@ end;
 procedure TSdaToolTipControl.DestroyHandle;
 begin
   DestroyWindow(Handle);
+  FHandle := 0;
 end;
 
 {$IFDEF DELPHI}class {$ENDIF}function TSdaToolTipControl.CreateHandle(Style: DWORD): HWND;

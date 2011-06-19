@@ -134,17 +134,16 @@ type
     function GetDragPosition: TPoint;
   public
     property Handle: HIMAGELIST read FHandle write FHandle;
-
-    {$IFDEF DELPHI}
-    class operator Implicit(Value: HIMAGELIST): TSdaImageListControl;
-    {$ENDIF}
-
     {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Width, Height: Integer; ColorDepth: TImageListColorDepth;
       Masked: Boolean = true; AllocBy: Integer = 4): HIMAGELIST; overload; static;
     {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Instance: HMODULE; const BitmapName: string;
       Width: Integer; MaskColor: TColor; Flags: DWORD = LR_DEFAULTCOLOR;
       AllocBy: Integer = 4): HIMAGELIST; overload; static;
     procedure DestroyHandle;
+
+    {$IFDEF DELPHI}
+    class operator Implicit(Value: HIMAGELIST): TSdaImageListControl;
+    {$ENDIF}
 
     function Duplicate: HIMAGELIST;
     procedure SetSize(Width, Height: Integer);

@@ -42,6 +42,11 @@ type
     procedure SetParent(const Value: HWND);
   public
     property Handle: HWND read FHandle write FHandle;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(const ClassName: string; Style: DWORD;
+      ExStyle: DWORD; const Caption: string; Left, Top, Width, Height: Integer;
+      Parent: HWND = 0; Instance: HINST = 0; Menu: HMENU = 0; Param: Pointer = nil): HWND; static;
+
+    procedure DestroyHandle;
 
     {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaWindowControl;
@@ -94,6 +99,20 @@ operator := (Value: HWND): TSdaWindowControl;
 implementation
 
 { TWindowsControl }
+
+{$IFDEF DELPHI}class {$ENDIF}function TSdaWindowControl.CreateHandle(const ClassName: string;
+  Style, ExStyle: DWORD; const Caption: string; Left, Top, Width, Height: Integer;
+  Parent: HWND; Instance: HINST; Menu: HMENU; Param: Pointer): HWND;
+begin
+  Result := CreateWindowEx(ExStyle, PChar(ClassName), PChar(Caption), Style,
+    Left, Top, Width, Height, Parent, Menu, Instance, Param);
+end;
+
+procedure TSdaWindowControl.DestroyHandle;
+begin
+  DestroyWindow(Handle);
+  FHandle := 0;
+end;
 
 procedure TSdaWindowControl.Close;
 var
