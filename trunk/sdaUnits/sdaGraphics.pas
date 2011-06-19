@@ -47,11 +47,11 @@ type
     property Handle: HDC read FHandle write FHandle;
     class operator Implicit(Value: HDC): TSdaCanvas;
 
-    class function Create(Window: HWND; NonClient: Boolean = false): HDC; overload; static;
-    class function Create(CompatibleTo: HDC): HDC; overload; static;
-    class function Create(const Driver, Device: string;
+    class function CreateHandle(Window: HWND; NonClient: Boolean = false): HDC; overload; static;
+    class function CreateHandle(CompatibleTo: HDC): HDC; overload; static;
+    class function CreateHandle(const Driver, Device: string;
       const DevMode: TDevMode): HDC; overload; static;
-    class function Create(const Driver, Device: string;
+    class function CreateHandle(const Driver, Device: string;
       DevMode: PDevMode): HDC; overload; static;
     procedure DestroyHandle;
 
@@ -391,25 +391,25 @@ begin
     Start.X, Start.Y, Finish.X, Finish.Y);
 end;
 
-class function TSdaCanvas.Create(const Driver, Device: string;
+class function TSdaCanvas.CreateHandle(const Driver, Device: string;
   DevMode: PDevMode): HDC;
 begin
   if AnsiSameText(Driver, 'DISPLAY') then DevMode := nil;
   Result := CreateDC(PChar(Driver), PChar(Device), nil, @DevMode);
 end;
 
-class function TSdaCanvas.Create(Window: HWND; NonClient: Boolean): HDC;
+class function TSdaCanvas.CreateHandle(Window: HWND; NonClient: Boolean): HDC;
 begin
   if NonClient then Result := GetWindowDC(Window)
     else Result := GetDC(Window);
 end;
 
-class function TSdaCanvas.Create(CompatibleTo: HDC): HDC;
+class function TSdaCanvas.CreateHandle(CompatibleTo: HDC): HDC;
 begin
   Result := CreateCompatibleDC(CompatibleTo);
 end;
 
-class function TSdaCanvas.Create(const Driver, Device: string;
+class function TSdaCanvas.CreateHandle(const Driver, Device: string;
   const DevMode: TDevMode): HDC;
 begin
   if AnsiSameText(Driver, 'DISPLAY')

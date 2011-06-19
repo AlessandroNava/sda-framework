@@ -12,30 +12,30 @@ type
 
   TSdaCurrentProcess = record
   private
-    class function GetCommandLine: string; static;
-    class function GetHandle: THandle; static;
-    class function GetId: UINT; static;
-    class function GetParamCount: Integer; static;
-    class function GetParams(Index: Integer): string; static;
-    class function GetExeName: string; static;
-    class function GetMainThread: THandle; static;
-    class function GetMainThreadId: UINT; static;
-    class function GetDefaultLayout: TProcessDefaultLayout; static;
-    class procedure SetDefaultLayout(const Value: TProcessDefaultLayout); static;
+    function GetCommandLine: string;
+    function GetHandle: THandle;
+    function GetId: UINT;
+    function GetParamCount: Integer;
+    function GetParams(Index: Integer): string;
+    function GetExeName: string;
+    function GetMainThread: THandle;
+    function GetMainThreadId: UINT;
+    function GetDefaultLayout: TProcessDefaultLayout;
+    procedure SetDefaultLayout(const Value: TProcessDefaultLayout);
   public
-    class property Handle: THandle read GetHandle;
-    class property Id: UINT read GetId;
-    class property ParamCount: Integer read GetParamCount;
-    class property Params[Index: Integer]: string read GetParams;
-    class property CommandLine: string read GetCommandLine;
-    class property ExeName: string read GetExeName;
-    class property MainThread: THandle read GetMainThread;
-    class property MainThreadId: UINT read GetMainThreadId;
-    class property DefaultLayout: TProcessDefaultLayout read GetDefaultLayout
+    property Handle: THandle read GetHandle;
+    property Id: UINT read GetId;
+    property ParamCount: Integer read GetParamCount;
+    property Params[Index: Integer]: string read GetParams;
+    property CommandLine: string read GetCommandLine;
+    property ExeName: string read GetExeName;
+    property MainThread: THandle read GetMainThread;
+    property MainThreadId: UINT read GetMainThreadId;
+    property DefaultLayout: TProcessDefaultLayout read GetDefaultLayout
       write SetDefaultLayout;
 
-//    class procedure EnablePrivilege(const Name: string); static;
-//    class procedure DisablePrivilege(const Name: string); static;
+    procedure EnablePrivilege(const Name: string);
+    procedure DisablePrivilege(const Name: string);
   end;
 
 var
@@ -49,7 +49,7 @@ var
 
 { TSdaProcess }
 
-(*class procedure TSdaProcess.DisablePrivilege(const Name: string);
+procedure TSdaCurrentProcess.DisablePrivilege(const Name: string);
 var
   hToken: DWORD;
   SeDebugNameValue: Int64;
@@ -72,7 +72,7 @@ begin
   end;
 end;
 
-class procedure TSdaProcess.EnablePrivilege(const Name: string);
+procedure TSdaCurrentProcess.EnablePrivilege(const Name: string);
 var
   hToken: DWORD;
   SeDebugNameValue: Int64;
@@ -93,14 +93,14 @@ begin
   finally
     CloseHandle(hToken);
   end;
-end; *)
+end;
 
-class function TSdaCurrentProcess.GetCommandLine: string;
+function TSdaCurrentProcess.GetCommandLine: string;
 begin
   Result := GetCommandLine;
 end;
 
-class function TSdaCurrentProcess.GetDefaultLayout: TProcessDefaultLayout;
+function TSdaCurrentProcess.GetDefaultLayout: TProcessDefaultLayout;
 var
   dw: DWORD;
 begin
@@ -108,42 +108,42 @@ begin
   Result := TProcessDefaultLayout(dw);
 end;
 
-class function TSdaCurrentProcess.GetExeName: string;
+function TSdaCurrentProcess.GetExeName: string;
 begin
   Result := ParamStr(0);
 end;
 
-class function TSdaCurrentProcess.GetHandle: THandle;
+function TSdaCurrentProcess.GetHandle: THandle;
 begin
   Result := GetCurrentProcess;
 end;
 
-class function TSdaCurrentProcess.GetID: UINT;
+function TSdaCurrentProcess.GetID: UINT;
 begin
   Result := GetCurrentProcessId;
 end;
 
-class function TSdaCurrentProcess.GetMainThread: THandle;
+function TSdaCurrentProcess.GetMainThread: THandle;
 begin
   Result := FMainThread;
 end;
 
-class function TSdaCurrentProcess.GetMainThreadId: UINT;
+function TSdaCurrentProcess.GetMainThreadId: UINT;
 begin
   Result := FMainThreadId;
 end;
 
-class function TSdaCurrentProcess.GetParamCount: Integer;
+function TSdaCurrentProcess.GetParamCount: Integer;
 begin
   Result := System.ParamCount;
 end;
 
-class function TSdaCurrentProcess.GetParams(Index: Integer): string;
+function TSdaCurrentProcess.GetParams(Index: Integer): string;
 begin
   Result := ParamStr(Index);
 end;
 
-class procedure TSdaCurrentProcess.SetDefaultLayout(const Value: TProcessDefaultLayout);
+procedure TSdaCurrentProcess.SetDefaultLayout(const Value: TProcessDefaultLayout);
 begin
   SetProcessDefaultLayout(DWORD(Value));
 end;
