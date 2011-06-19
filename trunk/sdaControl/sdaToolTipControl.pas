@@ -236,7 +236,7 @@ type
     Flags: DWORD;
   end;
 
-  TSdaToolTipControl = record
+  TSdaToolTipControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HWND;
     FWindow: HWND;
@@ -263,10 +263,12 @@ type
     function GetStyle: DWORD;
     procedure SetStyle(const Value: DWORD);
   public
-    class function CreateHandle(Style: DWORD): HWND; static;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Style: DWORD): HWND; static;
     procedure DestroyHandle;
 
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaToolTipControl;
+    {$ENDIF}
 
     property Handle: HWND read FHandle write FHandle;
     property Window: HWND read FWindow write FWindow;
@@ -310,10 +312,11 @@ type
     procedure TrackPosition(P: TPoint); overload;
   end;
 
-implementation
+{$IFDEF FPC}
+operator := (Value: HWND): TSdaToolTipControl;
+{$ENDIF}
 
-uses
-  Types;
+implementation
 
 { TSdaToolTipControl }
 
@@ -354,7 +357,7 @@ begin
   DestroyWindow(Handle);
 end;
 
-class function TSdaToolTipControl.CreateHandle(Style: DWORD): HWND;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaToolTipControl.CreateHandle(Style: DWORD): HWND;
 begin
   Result := CreateWindowEx(WS_EX_TOPMOST or WS_EX_TOOLWINDOW, TOOLTIPS_CLASS,
     nil, WS_POPUP or Style, Integer(CW_USEDEFAULT), Integer(CW_USEDEFAULT),
@@ -399,7 +402,11 @@ begin
   SendMessage(Handle, TTM_POP, 0, 0);
 end;
 
+{$IFDEF DELPHI}
 class operator TSdaToolTipControl.Implicit(Value: HWND): TSdaToolTipControl;
+{$ELSE}
+operator := (Value: HWND): TSdaToolTipControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;

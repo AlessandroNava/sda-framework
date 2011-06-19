@@ -8,7 +8,7 @@ uses
   sdaWindows, sdaSysUtils;
 
 type
-  TSdaMouse = record
+  TSdaMouse = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     function GetCapture: HWND;
     function GetCursorPos: TPoint;
@@ -32,7 +32,7 @@ type
     procedure TrackEvent(Window: HWND; Flags: DWORD; HoverTime: DWORD = HOVER_DEFAULT);
   end;
 
-  TSdaKeyboard = record
+  TSdaKeyboard = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     function GetDefaultKbLayout: HKL;
   public
@@ -51,9 +51,6 @@ function InputKeyUp(Scan: WideChar): TInput; overload;
 function SdaSendInput(Inputs: array of TInput): Integer;
 
 implementation
-
-uses
-  Types;
 
 function InputKeyDown(VKey: Byte): TInput;
 begin

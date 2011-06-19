@@ -8,7 +8,7 @@ uses
   sdaWindows, sdaMessages;
 
 type
-  TSdaDialogControl = record
+  TSdaDialogControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HWND;
     function GetItemEnabled(ItemID: Integer): Boolean;
@@ -21,7 +21,9 @@ type
     procedure SetItemVisible(ItemID: Integer; const Value: Boolean);
   public
     property Handle: HWND read FHandle write FHandle;
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaDialogControl;
+    {$ENDIF}
 
     property ItemHandle[ItemID: Integer]: HWND read GetItemHandle;
     property ItemID[WndChild: HWND]: Integer read GetItemID;
@@ -43,6 +45,10 @@ type
     procedure MapDialogRect(var Rect: TRect);
   end;
 
+{$IFDEF FPC}
+operator := (Value: HWND): TSdaDialogControl;
+{$ENDIF}
+
 implementation
 
 { TSdaDialogControl }
@@ -52,7 +58,11 @@ begin
   SetWindowLong(hwndItem, GWL_ID, NewID);
 end;
 
+{$IFDEF DELPHI}
 class operator TSdaDialogControl.Implicit(Value: HWND): TSdaDialogControl;
+{$ELSE}
+operator := (Value: HWND): TSdaDialogControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;

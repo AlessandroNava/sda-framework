@@ -5,11 +5,11 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaSystem, sdaWindows, sdaMessages, sdaSysUtils;
+  sdaSystem, sdaWindows, sdaMessages;
 
 type
   TSdaDialogObject = class(TObject)
-  strict private
+  private
     FHandle: HWND;
     FDialogMessageHandled: Boolean;
     procedure WMNCDestroy(var Message: TWMNCDestroy); message WM_NCDESTROY;

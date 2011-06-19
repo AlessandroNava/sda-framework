@@ -1,17 +1,77 @@
 unit sdaWindows;
 
-{$ALIGN ON}
-{$MINENUMSIZE 4}
-{$WEAKPACKAGEUNIT}
-{$IFDEF LINUX}
-{$DEFINE LINUXCRITSECTION}
-{$ENDIF}
-
 interface
 
 {$INCLUDE 'sda.inc'}
 
-uses Types;
+{ From Types.pas }
+
+type
+  PLongint = System.PLongint;
+  PInteger = System.PInteger;
+  PSmallInt = System.PSmallInt;
+  PDouble = System.PDouble;
+  PByte = System.PByte;
+
+  PPoint = ^TPoint;
+  TPoint = record
+    X: Longint;
+    Y: Longint;
+  end;
+  tagPOINT = TPoint;
+
+  PRect = ^TRect;
+  TRect = record
+    case Integer of
+      0: (Left, Top, Right, Bottom: Longint);
+      1: (TopLeft, BottomRight: TPoint);
+  end;
+
+  PSize = ^TSize;
+  tagSIZE = record
+    cx: Longint;
+    cy: Longint;
+  end;
+  TSize = tagSIZE;
+  SIZE = tagSIZE;
+
+  PSmallPoint = ^TSmallPoint;
+  TSmallPoint = record
+    x: SmallInt;
+    y: SmallInt;
+  end;
+
+  DWORD = LongWord;
+
+type
+  TSplitRectType = (
+    srLeft,
+    srRight,
+    srTop,
+    srBottom
+  );
+
+function Rect(Left, Top, Right, Bottom: Integer): TRect;
+function Bounds(ALeft, ATop, AWidth, AHeight: Integer): TRect;
+function Point(X, Y: Integer): TPoint; inline;
+function SmallPoint(X, Y: Integer): TSmallPoint; inline; overload;
+function SmallPoint(XY: LongWord): TSmallPoint; overload;
+function PtInCircle(const Point, Center: TPoint; Radius: Integer): Boolean;
+function CenterPoint(const Rect: TRect): TPoint;
+function RectWidth(const Rect: TRect): Integer; inline;
+function RectHeight(const Rect: TRect): Integer; inline;
+function SplitRect(const Rect: TRect; SplitType: TSplitRectType; Size: Integer): TRect; overload;
+function SplitRect(const Rect: TRect; SplitType: TSplitRectType; Percent: Double): TRect; overload;
+function CenteredRect(const Source: TRect; const Centered: TRect): TRect;
+
+type
+  TValueRelationship = -1..1;
+
+const
+  LessThanValue = Low(TValueRelationship);
+  EqualsValue = 0;
+  GreaterThanValue = High(TValueRelationship);
+
 
 type
 { Translated from WINDEF.H }
@@ -30,10 +90,8 @@ type
   PLPWSTR = ^LPWSTR;
   LPCWSTR = PWideChar;
 
-  DWORD = Types.DWORD;
   BOOL = LongBool;
   PBOOL = ^BOOL;
-  PByte = Types.PByte;
   LPBYTE = PByte;
   PINT = ^Integer;
   PSingle = ^Single;
@@ -58,11 +116,7 @@ type
   PUINT = ^UINT;
   ULONG = Cardinal;
   PULONG = ^ULONG;
-  PLongint = System.PLongint;
-  PInteger = System.PInteger;
   PLongWord = System.PLongWord;
-  PSmallInt = System.PSmallInt;
-  PDouble = System.PDouble;
   PShortInt = System.PShortInt;
 
   LCID = DWORD;
@@ -78,6 +132,19 @@ type
   ULONG_PTR = LongWord;
   DWORD_PTR = ULONG_PTR;
   HANDLE_PTR = type LongWord;
+
+{$IFDEF FPC}
+  NativeInt = PtrInt;
+  NativeUInt = PtrUInt;
+
+  Int8 = ShortInt;
+  Int16 = SmallInt;
+  Int32 = Longint;
+
+  UInt8 = Byte;
+  UInt16 = Word;
+  UInt32 = DWORD;
+{$ENDIF}
 
 const
   MAX_PATH = 260;
@@ -2091,12 +2158,12 @@ type
   HICON = type LongWord;
   HMENU = type LongWord;
   HMETAFILE = type LongWord;
-  HINST = System.HINST;
+  HINST = System.HMODULE;
   HMODULE = System.HMODULE;      { HMODULEs can be used in place of HINSTs }
   HPALETTE = type LongWord;
   HPEN = type LongWord;
   HRGN = type LongWord;
-  HRSRC = System.HRSRC;
+  HRSRC = System.THandle;
   HSTR = type LongWord;
   HTASK = type LongWord;
   HWINSTA = type LongWord;
@@ -2114,13 +2181,6 @@ const
   HFILE_ERROR = HFILE(-1);
 
 type
-  PPoint = Types.PPoint;
-  TPoint = Types.TPoint;
-  tagPoint = Types.tagPoint;
-  PRect = Types.PRect;
-  TRect = Types.TRect;
-
-type
   _POINTL = packed record      { ptl }
     x: Longint;
     y: Longint;
@@ -2128,12 +2188,6 @@ type
   PPointL = ^TPointL;
   TPointL = _POINTL;
 
-  PSize = Types.PSize;
-  TSize = Types.TSize;
-  SIZE = Types.SIZE;
-
-  PSmallPoint = Types.PSmallPoint;
-  TSmallPoint = Types.TSmallPoint;
 { Translated from WINBASE.H }
 
 { Compatiblity functions and procedures }
@@ -9630,7 +9684,7 @@ type
 
 { Bitmap Header Definition }
   PBitmap = ^TBitmap;
-  tagBITMAP = packed record
+  tagBITMAP = record
     bmType: Longint;
     bmWidth: Longint;
     bmHeight: Longint;
@@ -11329,7 +11383,7 @@ type
   POutlineTextmetricA = ^TOutlineTextmetricA;
   POutlineTextmetricW = ^TOutlineTextmetricW;
   POutlineTextmetric = POutlineTextmetricW;
-  _OUTLINETEXTMETRICA = record
+  _OUTLINETEXTMETRICA = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     function GetFaceName: PAnsiChar;
     function GetFamilyName: PAnsiChar;
@@ -11373,7 +11427,7 @@ type
     property FullName: PAnsiChar read GetFullName;
     property StyleName: PAnsiChar read GetStyleName;
   end;
-  _OUTLINETEXTMETRICW = record
+  _OUTLINETEXTMETRICW = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     function GetFaceName: PWideChar;
     function GetFamilyName: PWideChar;
@@ -13749,7 +13803,7 @@ const
   RT_FONTDIR      = MakeIntResource(7);
   RT_FONT         = MakeIntResource(8);
   RT_ACCELERATOR  = MakeIntResource(9);
-  RT_RCDATA       = Types.RT_RCDATA; //MakeIntResource(10);
+  RT_RCDATA       = MakeIntResource(10);
   RT_MESSAGETABLE = MakeIntResource(11);
 
   DIFFERENCE = 11;
@@ -18392,7 +18446,7 @@ type
   PNonClientMetricsA = ^TNonClientMetricsA;
   PNonClientMetricsW = ^TNonClientMetricsW;
   PNonClientMetrics = PNonClientMetricsW;
-  tagNONCLIENTMETRICSA = record
+  tagNONCLIENTMETRICSA = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
     cbSize: UINT;
     iBorderWidth: Integer;
     iScrollWidth: Integer;
@@ -18409,9 +18463,9 @@ type
     lfStatusFont: TLogFontA;
     lfMessageFont: TLogFontA;
     iPaddedBorderWidth: Integer; // Requires Windows Vista or later
-    class function SizeOf: Integer; static;
+    {$IFDEF DELPHI}class {$ENDIF}function SizeOf: Integer; static;
   end;
-  tagNONCLIENTMETRICSW = record
+  tagNONCLIENTMETRICSW = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
     cbSize: UINT;
     iBorderWidth: Integer;
     iScrollWidth: Integer;
@@ -18428,7 +18482,7 @@ type
     lfStatusFont: TLogFontW;
     lfMessageFont: TLogFontW;
     iPaddedBorderWidth: Integer; // Requires Windows Vista or later
-    class function SizeOf: Integer; static;
+    {$IFDEF DELPHI}class {$ENDIF}function SizeOf: Integer; static;
   end;
   tagNONCLIENTMETRICS = tagNONCLIENTMETRICSW;
   TNonClientMetricsA = tagNONCLIENTMETRICSA;
@@ -21435,6 +21489,121 @@ const
   msimg32   = 'msimg32.dll';
 
 implementation
+
+{ From Types.pas }
+
+function SplitRect(const Rect: TRect; SplitType: TSplitRectType; Size: Integer): TRect;
+begin
+  Result := Rect;
+  case SplitType of
+    srLeft:
+      Result.Right := Rect.Left + Size;
+    srRight:
+      Result.Left := Rect.Right - Size;
+    srTop:
+      Result.Bottom := Rect.Top + Size;
+    srBottom:
+      Result.Top := Rect.Bottom - Size;
+  end;
+end;
+
+function SplitRect(const Rect: TRect; SplitType: TSplitRectType; Percent: Double): TRect;
+begin
+  Result := Rect;
+  case SplitType of
+    srLeft:
+      Result.Right := Rect.Left + Trunc(Percent * RectWidth(Rect));
+    srRight:
+      Result.Left := Rect.Right - Trunc(Percent * RectWidth(Rect));
+    srTop:
+      Result.Bottom := Rect.Top + Trunc(Percent * RectHeight(Rect));
+    srBottom:
+      Result.Top := Rect.Bottom - Trunc(Percent * RectHeight(Rect));
+  end;
+end;
+
+function CenteredRect(const Source: TRect; const Centered: TRect): TRect;
+var
+  Width, Height: Integer;
+  X, Y: Integer;
+begin
+  Width := RectWidth(Centered);
+  Height := RectHeight(Centered);
+  X := (Source.Right + Source.Left) div 2;
+  Y := (Source.Top + Source.Bottom) div 2;
+  Result := Rect(X - Width div 2, Y - Height div 2, X + (Width + 1) div 2, Y + (Height + 1) div 2);
+end;
+
+function Rect(Left, Top, Right, Bottom: Integer): TRect;
+begin
+  Result.Left := Left;
+  Result.Top := Top;
+  Result.Bottom := Bottom;
+  Result.Right := Right;
+end;
+
+function RectWidth(const Rect: TRect): Integer;
+begin
+  Result := Rect.Right - Rect.Left;
+end;
+
+function RectHeight(const Rect: TRect): Integer;
+begin
+  Result := Rect.Bottom - Rect.Top;
+end;
+
+function Point(X, Y: Integer): TPoint;
+begin
+  Result.X := X;
+  Result.Y := Y;
+end;
+
+function SmallPoint(X, Y: Integer): TSmallPoint;
+begin
+  Result.X := X;
+  Result.Y := Y;
+end;
+
+function SmallPoint(XY: LongWord): TSmallPoint;
+begin
+  Result.X := SmallInt(XY and $0000FFFF);
+  Result.Y := SmallInt(XY shr 16);
+end;
+
+function PtInCircle(const Point, Center: TPoint; Radius: Integer): Boolean;
+begin
+  if Radius > 0 then
+  begin
+    Result := Sqr((Point.X - Center.X) / Radius) +
+      Sqr((Point.Y - Center.Y) / Radius) <= 1;
+  end
+  else
+  begin
+    Result := False;
+  end;
+end;
+
+function Bounds(ALeft, ATop, AWidth, AHeight: Integer): TRect;
+begin
+  with Result do
+  begin
+    Left := ALeft;
+    Top := ATop;
+    Right := ALeft + AWidth;
+    Bottom :=  ATop + AHeight;
+  end;
+end;
+
+function CenterPoint(const Rect: TRect): TPoint;
+begin
+  with Rect do
+  begin
+    Result.X := (Right - Left) div 2 + Left;
+    Result.Y := (Bottom - Top) div 2 + Top;
+  end;
+end;
+
+{ Windows.pas }
 
 var
   Win32MajorVersion: Integer = 0;

@@ -50,7 +50,7 @@ const
   PBST_PAUSED             = $0003;
 
 type
-  TSdaProgressBarControl = record
+  TSdaProgressBarControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HWND;
     function GetMax: Integer;
@@ -69,11 +69,14 @@ type
     procedure SetStyle(const Value: DWORD);
   public
     property Handle: HWND read FHandle write FHandle;
-    class function CreateHandle(Left, Top, Width, Height: Integer;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Left, Top, Width, Height: Integer;
       Parent: HWND = 0; Style: DWORD = WS_CHILD or WS_VISIBLE;
       ExStyle: DWORD = 0): HWND; static;
     procedure DestroyHandle;
+
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaProgressBarControl;
+    {$ENDIF}
 
     property Min: Integer read GetMin write SetMin;
     property Max: Integer read GetMax write SetMax;
@@ -92,11 +95,15 @@ type
     procedure DisableMarquee;
   end;
 
+{$IFDEF FPC}
+operator := (Value: HWND): TSdaProgressBarControl;
+{$ENDIF}
+
 implementation
 
 { TSdaProgressBarControl }
 
-class function TSdaProgressBarControl.CreateHandle(Left, Top, Width, Height: Integer;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaProgressBarControl.CreateHandle(Left, Top, Width, Height: Integer;
   Parent: HWND; Style: DWORD; ExStyle: DWORD): HWND;
 begin
   Result := CreateWindowEx(ExStyle, PROGRESS_CLASS, nil, Style, Left, Top,
@@ -159,8 +166,11 @@ begin
   SendMessage(Handle, PBM_STEPIT, 0, 0);
 end;
 
-class operator TSdaProgressBarControl.Implicit(
-  Value: HWND): TSdaProgressBarControl;
+{$IFDEF DELPHI}
+class operator TSdaProgressBarControl.Implicit(Value: HWND): TSdaProgressBarControl;
+{$ELSE}
+operator := (Value: HWND): TSdaProgressBarControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;

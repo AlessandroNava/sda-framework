@@ -91,7 +91,7 @@ begin
 
   FTip := TSdaToolTipControl.CreateHandle(TTS_BALLOON);
   c := TSdaDialogControl(Handle).ItemHandle[IDPAUSE];
-  FTip.Window := HWND(c);
+  FTip.Window := c.Handle;
   FTip.Title := 'Tray icon';
   FTip.TitleIcon := TTI_INFO;
   FTip.AddTool(1, 'Press this button to display message in tray', c.ClientRect, TTF_SUBCLASS or TTF_CENTERTIP);

@@ -8,7 +8,7 @@ uses
   sdaWindows;
 
 type
-  TSdaWinIniFile = record
+  TSdaWinIniFile = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
     procedure WriteString(const Section, Key, Value: string);
     function ReadString(const Section, Key, Default: string): string;
 
@@ -21,7 +21,7 @@ type
     procedure UpdateFile;
   end;
 
-  TSdaIniFile = record
+  TSdaIniFile = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FFileName: string;
   public

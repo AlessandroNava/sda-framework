@@ -8,8 +8,6 @@ uses
   sdaSystem, sdaWindows, sdaMessages;
 
 type
-  TSdaWindowProc = function(Window: HWND; var Message: TMessage): BOOL; stdcall;
-
   TSdaWindowObject = class(TObject)
   private
     FHandle: HWND;

@@ -8,7 +8,7 @@ uses
   sdaWindows, sdaMessages;
 
 type
-  TSdaWindowControl = record
+  TSdaWindowControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HWND;
     function GetWindowClass: string;
@@ -42,7 +42,10 @@ type
     procedure SetParent(const Value: HWND);
   public
     property Handle: HWND read FHandle write FHandle;
+
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaWindowControl;
+    {$ENDIF}
 
     property Style: DWORD read GetStyle write SetStyle;
     property ExStyle: DWORD read GetExStyle write SetExStyle;
@@ -83,6 +86,10 @@ type
     procedure Flash(FlashButton: Boolean = true;
       FlashCaption: Boolean = true; Timeout: Integer = 0); overload;
   end;
+
+{$IFDEF FPC}
+operator := (Value: HWND): TSdaWindowControl;
+{$ENDIF}
 
 implementation
 
@@ -264,7 +271,11 @@ begin
   FlashWindowEx(fi);
 end;
 
+{$IFDEF DELPHI}
 class operator TSdaWindowControl.Implicit(Value: HWND): TSdaWindowControl;
+{$ELSE}
+operator := (Value: HWND): TSdaWindowControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;

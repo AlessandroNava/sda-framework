@@ -8,8 +8,8 @@ uses
   sdaSysUtils, {$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}sdaWindows, sdaActiveX{$ENDIF};
 
 type
-  TSdaStrings = class abstract(TObject)
-  strict protected
+  TSdaStrings = class(TObject)
+  protected
     function GetCount: Integer; virtual; abstract;
     function GetStrings(Index: Integer): string; virtual; abstract;
     procedure SetCount(const Value: Integer); virtual; abstract;
@@ -31,10 +31,10 @@ type
   end;
 
   TSdaStringList = class(TSdaStrings)
-  strict private
+  private
     FStrings: array of string;
     FLineSeparator: string;
-  strict protected
+  protected
     function GetCount: Integer; override;
     function GetStrings(Index: Integer): string; override;
     procedure SetCount(const Value: Integer); override;

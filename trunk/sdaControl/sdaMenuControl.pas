@@ -8,7 +8,7 @@ uses
   sdaWindows;
 
 type
-  TSdaMenuControl = record
+  TSdaMenuControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HMENU;
     function GetItemCount: Integer;
@@ -30,7 +30,9 @@ type
   public
     property Handle: HMENU read FHandle write SetHandle;
     procedure DestroyHandle;
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HMENU): TSdaMenuControl;
+    {$ENDIF}
 
     property ItemCaption[Index: Integer]: string read GetItemCaption
       write SetItemCaption;
@@ -60,7 +62,11 @@ type
     property Background: HBRUSH read GetBackground write SetBackground;
   end;
 
-  TSdaPopupMenuControl = record
+{$IFDEF FPC}
+operator := (Value: HMENU): TSdaMenuControl;
+{$ENDIF}
+
+  TSdaPopupMenuControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HMENU;
     procedure SetHandle(const Value: HMENU);
@@ -68,12 +74,11 @@ type
     property Handle: HMENU read FHandle write SetHandle;
     procedure DestroyHandle;
     class operator Implicit(Value: HMENU): TSdaPopupMenuControl;
-    class operator Explicit(const Value: TSdaPopupMenuControl): HMENU;
 
-    class function CreateHandle: HMENU; overload; static;
-    class function CreateHandle(Instance: HMODULE; MenuName: string;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle: HMENU; overload; static;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Instance: HMODULE; MenuName: string;
       SubItemIndex: Integer = 0): HMENU; overload; static;
-    class function CreateHandle(Window: HWND;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Window: HWND;
       ResetMenu: Boolean = false): HMENU; overload; static;
 
     function Popup(Window: HWND; X, Y: Integer;
@@ -85,7 +90,11 @@ type
     procedure CheckRadioItem(ItemToCheck, FirstInGroup, LastInGroup: Integer);
   end;
 
-  TSdaMainMenuControl = record
+{$IFDEF FPC}
+operator := (Value: HMENU): TSdaPopupMenuControl;
+{$ENDIF}
+
+  TSdaMainMenuControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HMENU;
     procedure SetHandle(const Value: HMENU);
@@ -93,17 +102,20 @@ type
     property Handle: HMENU read FHandle write SetHandle;
     procedure DestroyHandle;
     class operator Implicit(Value: HMENU): TSdaMainMenuControl;
-    class operator Explicit(const Value: TSdaMainMenuControl): HMENU;
-    class function CreateHandle: HMENU; overload; static;
-    class function CreateHandle(Instance: HMODULE;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle: HMENU; overload; static;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Instance: HMODULE;
       MenuName: string): HMENU; overload; static;
-    class function CreateHandle(Window: HWND): HMENU; overload; static;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Window: HWND): HMENU; overload; static;
 
-    class procedure DrawMenuBar(Window: HWND); static;
+    {$IFDEF DELPHI}class {$ENDIF}procedure DrawMenuBar(Window: HWND); static;
     procedure Apply(Window: HWND);
 
     procedure HiliteItem(Window: HWND; Index: Integer; Hilite: Boolean);
   end;
+
+{$IFDEF FPC}
+operator := (Value: HMENU): TSdaMainMenuControl;
+{$ENDIF}
 
 implementation
 
@@ -232,7 +244,11 @@ begin
     ID, PChar(Bitmap));
 end;
 
+{$IFDEF DELPHI}
 class operator TSdaMenuControl.Implicit(Value: HMENU): TSdaMenuControl;
+{$ELSE}
+operator := (Value: HMENU): TSdaMenuControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;
@@ -340,12 +356,12 @@ end;
 
 { TSdaPopupMenuControl }
 
-class function TSdaPopupMenuControl.CreateHandle: HMENU;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaPopupMenuControl.CreateHandle: HMENU;
 begin
   Result := CreatePopupMenu;
 end;
 
-class function TSdaPopupMenuControl.CreateHandle(Instance: HMODULE; MenuName: string;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaPopupMenuControl.CreateHandle(Instance: HMODULE; MenuName: string;
   SubItemIndex: Integer): HMENU;
 var
   hm: HMENU;
@@ -357,7 +373,7 @@ begin
   DestroyMenu(hm);
 end;
 
-class function TSdaPopupMenuControl.CreateHandle(Window: HWND;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaPopupMenuControl.CreateHandle(Window: HWND;
   ResetMenu: Boolean): HMENU;
 begin
   Result := GetSystemMenu(Window, ResetMenu);
@@ -369,12 +385,11 @@ begin
   FHandle := 0;
 end;
 
-class operator TSdaPopupMenuControl.Explicit(const Value: TSdaPopupMenuControl): HMENU;
-begin
-  Result := Value.Handle;
-end;
-
+{$IFDEF DELPHI}
 class operator TSdaPopupMenuControl.Implicit(Value: HMENU): TSdaPopupMenuControl;
+{$ELSE}
+operator := (Value: HMENU): TSdaPopupMenuControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;
@@ -413,12 +428,12 @@ end;
 
 { TSdaMainMenuControl }
 
-class function TSdaMainMenuControl.CreateHandle: HMENU;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaMainMenuControl.CreateHandle: HMENU;
 begin
   Result := CreateMenu;
 end;
 
-class function TSdaMainMenuControl.CreateHandle(Instance: HMODULE;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaMainMenuControl.CreateHandle(Instance: HMODULE;
   MenuName: string): HMENU;
 begin
   Result := LoadMenu(Instance, PChar(MenuName));
@@ -429,7 +444,7 @@ begin
   SetMenu(Window, Handle);
 end;
 
-class function TSdaMainMenuControl.CreateHandle(Window: HWND): HMENU;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaMainMenuControl.CreateHandle(Window: HWND): HMENU;
 begin
   Result := GetMenu(Window);
 end;
@@ -440,17 +455,16 @@ begin
   FHandle := 0;
 end;
 
-class procedure TSdaMainMenuControl.DrawMenuBar(Window: HWND);
+{$IFDEF DELPHI}class {$ENDIF}procedure TSdaMainMenuControl.DrawMenuBar(Window: HWND);
 begin
-
+  sdaWindows.DrawMenuBar(Window);
 end;
 
-class operator TSdaMainMenuControl.Explicit(const Value: TSdaMainMenuControl): HMENU;
-begin
-  Result := Value.Handle;
-end;
-
+{$IFDEF DELPHI}
 class operator TSdaMainMenuControl.Implicit(Value: HMENU): TSdaMainMenuControl;
+{$ELSE}
+operator := (Value: HMENU): TSdaMainMenuControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;

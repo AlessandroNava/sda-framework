@@ -53,7 +53,7 @@ const
   NIN_BALLOONUSERCLICK = WM_USER + 5;
 
 type
-  TSdaNotifyIcon = record
+  TSdaNotifyIcon = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FIconData: TNotifyIconDataEx;
     function UpdateIcon(NotifyIconMessage: DWORD; AddFlags,
