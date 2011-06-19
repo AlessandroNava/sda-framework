@@ -17,7 +17,7 @@
 "</assembly>"
 }
 
-1 icon "res\appmain.ico"
+1 icon "appmain.ico"
 
 // #include "uDlgIDs.pas"
 
