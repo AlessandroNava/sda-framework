@@ -135,7 +135,6 @@ type
   public
     property Handle: HIMAGELIST read FHandle write FHandle;
     class operator Implicit(Value: HIMAGELIST): TSdaImageListControl;
-    class operator Explicit(const Value: TSdaImageListControl): HIMAGELIST;
     class function CreateHandle(Width, Height: Integer; ColorDepth: TImageListColorDepth;
       Masked: Boolean = true; AllocBy: Integer = 4): HIMAGELIST; overload; static;
     class function CreateHandle(Instance: HMODULE; const BitmapName: string;
@@ -404,12 +403,6 @@ end;
 procedure TSdaImageListControl.EndDrag;
 begin
   ImageList_EndDrag;
-end;
-
-class operator TSdaImageListControl.Explicit(
-  const Value: TSdaImageListControl): HIMAGELIST;
-begin
-  Result := Value.Handle;
 end;
 
 function TSdaImageListControl.Extract(Index: Integer;

@@ -33,8 +33,13 @@ type
 
   TNotifyIconDataEx = TNotifyIconDataExW;
 
-  TBalloonHintIcon = (BalloonNone, BalloonInfo, BalloonWarning,
-    BalloonError, BalloonCustom);
+  TBalloonHintIcon = (
+    BalloonNone = NIIF_NONE,
+    BalloonInfo = NIIF_INFO,
+    BalloonWarning = NIIF_WARNING,
+    BalloonError = NIIF_ERROR,
+    BalloonCustom = NIIF_USER
+  );
   TBalloonHintTimeOut = 10..60;   // Windows defines 10-60 secs. as min-max
 
 const
@@ -167,9 +172,6 @@ end;
 
 function TSdaNotifyIcon.ShowBalloonHint(Title, Text: String;
   IconType: TBalloonHintIcon; TimeoutSecs: TBalloonHintTimeOut): Boolean;
-const
-  BalloonIconTypes: array[TBalloonHintIcon] of Byte =
-    (NIIF_NONE, NIIF_INFO, NIIF_WARNING, NIIF_ERROR, NIIF_USER);
 begin
   with FIconData do
   begin
@@ -179,7 +181,7 @@ begin
     FillChar(szInfoTitle, SizeOf(szInfoTitle), 0);
     StrLCopy(szInfoTitle, PChar(Title), Length(szInfoTitle) - 1);
     TimeoutOrVersion.uTimeout := TimeoutSecs * 1000;
-    dwInfoFlags := BalloonIconTypes[IconType];
+    dwInfoFlags := DWORD(IconType);
   end;
   Result := UpdateIcon(NIM_MODIFY, NIF_INFO, 0);
 end;

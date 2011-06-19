@@ -75,7 +75,7 @@
 			<DCCReference Include="sdaUnits\sdaScreen.pas"/>
 			<DCCReference Include="sdaUnits\sdaSysUtils.pas"/>
 			<DCCReference Include="sdaUnits\sdaWindows.pas"/>
-			<DCCReference Include="sdaTestControl.pas"/>
+			<DCCReference Include="sdaUnits\sdaSystem.pas"/>
 			<None Include="sda.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>

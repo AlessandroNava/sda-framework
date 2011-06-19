@@ -42,7 +42,6 @@ type
     procedure SetParent(const Value: HWND);
   public
     property Handle: HWND read FHandle write FHandle;
-    class operator Explicit(Value: TSdaWindowControl): HWND;
     class operator Implicit(Value: HWND): TSdaWindowControl;
 
     property Style: DWORD read GetStyle write SetStyle;
@@ -216,11 +215,6 @@ end;
 procedure TSdaWindowControl.Hide;
 begin
   ShowWindow(Handle, SW_HIDE);
-end;
-
-class operator TSdaWindowControl.Explicit(Value: TSdaWindowControl): HWND;
-begin
-  Result := Value.Handle;
 end;
 
 procedure TSdaWindowControl.Flash(FlashCount: Integer; FlashButton,

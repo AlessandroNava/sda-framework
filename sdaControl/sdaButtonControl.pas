@@ -86,7 +86,6 @@ type
       Parent: HWND = 0; Style: DWORD = WS_CHILD or BS_PUSHBUTTON): HWND; static;
     procedure DestroyHandle;
     class operator Implicit(Value: HWND): TSdaButtonControl;
-    class operator Explicit(const Value: TSdaButtonControl): HWND;
 
     property Handle: HWND read FHandle write FHandle;
     property Style: DWORD read GetStyle write SetStyle;
@@ -135,11 +134,6 @@ procedure TSdaButtonControl.DestroyHandle;
 begin
   DestroyWindow(FHandle);
   FHandle := 0;
-end;
-
-class operator TSdaButtonControl.Explicit(const Value: TSdaButtonControl): HWND;
-begin
-  Result := Value.Handle;
 end;
 
 function TSdaButtonControl.GetBitmap: HBITMAP;

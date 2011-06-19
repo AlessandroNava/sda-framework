@@ -5,24 +5,18 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, sdaMessages, sdaSysUtils;
+  sdaSystem, sdaWindows, sdaMessages, sdaSysUtils;
 
-const
-  SDAM_BASE = WM_APP + $3000;
-  SDAM_SETWNDHANDLE = SDAM_BASE + 1;
-  SDAM_DESTROYWINDOW = SDAM_BASE + 2;
-  
 type
   TSdaDialogObject = class(TObject)
   strict private
     FHandle: HWND;
     FDialogMessageHandled: Boolean;
-    procedure SDASetWndHandle(var Message: TMessage); message SDAM_SETWNDHANDLE;
     procedure WMNCDestroy(var Message: TWMNCDestroy); message WM_NCDESTROY;
     procedure WMCommand(var Message: TWMCommand); message WM_COMMAND;
     procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
     procedure WMInitDialog(var Message: TWMInitDialog); message WM_INITDIALOG;
-  strict protected
+  protected
     property Handle: HWND read FHandle write FHandle;
     procedure DestroyHandle;
     function InitDialog(AFocusControl: HWND): Boolean; virtual;
@@ -161,13 +155,8 @@ begin
     begin
       SdaSetAssociatedObject(hWnd, lpcs.SdaObject);
       if Assigned(lpcs.SdaObject) then
-      begin
-        Message.Msg := SDAM_SETWNDHANDLE;
-        Message.WParam := hWnd;
-        Message.LParam := 0;
-        Message.Result := 0;
-        lpcs.SdaObject.Dispatch(Message);
-      end;
+        if lpcs.SdaObject is TSdaDialogObject then
+          TSdaDialogObject(lpcs.SdaObject).Handle := hWnd;
       lParam := sdaWindows.LPARAM(lpcs.UserData);
     end;
   end;
@@ -312,12 +301,6 @@ class function TSdaDialogObject.CreateHandle(const ATemplate: DLGTEMPLATE;
   AWndParent: HWND; AParam: Pointer): HWND;
 begin
   Result := SdaCreateDialog(HInstance, ATemplate, AWndParent, AParam, Self);
-end;
-
-procedure TSdaDialogObject.SDASetWndHandle(var Message: TMessage);
-begin
-  FHandle := Message.WParam;
-  Message.Result := 0;
 end;
 
 procedure TSdaDialogObject.WMNCDestroy(var Message: TWMNCDestroy);

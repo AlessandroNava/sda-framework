@@ -267,7 +267,6 @@ type
     procedure DestroyHandle;
 
     class operator Implicit(Value: HWND): TSdaToolTipControl;
-    class operator Explicit(Value: TSdaToolTipControl): HWND;
 
     property Handle: HWND read FHandle write FHandle;
     property Window: HWND read FWindow write FWindow;
@@ -403,11 +402,6 @@ end;
 class operator TSdaToolTipControl.Implicit(Value: HWND): TSdaToolTipControl;
 begin
   Result.Handle := Value;
-end;
-
-class operator TSdaToolTipControl.Explicit(Value: TSdaToolTipControl): HWND;
-begin
-  Result := Value.Handle;
 end;
 
 procedure TSdaToolTipControl.RelayMouseEvent(const Message: TMessage);

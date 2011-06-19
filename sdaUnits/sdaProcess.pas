@@ -10,7 +10,7 @@ uses
 type
   TProcessDefaultLayout = (LayoutLTR = LAYOUT_LTR, LayoutRTL = LAYOUT_RTL);
 
-  TSdaProcess = record
+  TSdaCurrentProcess = record
   private
     class function GetCommandLine: string; static;
     class function GetHandle: THandle; static;
@@ -39,7 +39,7 @@ type
   end;
 
 var
-  Process: TSdaProcess;
+  Process: TSdaCurrentProcess;
 
 implementation
 
@@ -95,12 +95,12 @@ begin
   end;
 end; *)
 
-class function TSdaProcess.GetCommandLine: string;
+class function TSdaCurrentProcess.GetCommandLine: string;
 begin
   Result := GetCommandLine;
 end;
 
-class function TSdaProcess.GetDefaultLayout: TProcessDefaultLayout;
+class function TSdaCurrentProcess.GetDefaultLayout: TProcessDefaultLayout;
 var
   dw: DWORD;
 begin
@@ -108,42 +108,42 @@ begin
   Result := TProcessDefaultLayout(dw);
 end;
 
-class function TSdaProcess.GetExeName: string;
+class function TSdaCurrentProcess.GetExeName: string;
 begin
   Result := ParamStr(0);
 end;
 
-class function TSdaProcess.GetHandle: THandle;
+class function TSdaCurrentProcess.GetHandle: THandle;
 begin
   Result := GetCurrentProcess;
 end;
 
-class function TSdaProcess.GetID: UINT;
+class function TSdaCurrentProcess.GetID: UINT;
 begin
   Result := GetCurrentProcessId;
 end;
 
-class function TSdaProcess.GetMainThread: THandle;
+class function TSdaCurrentProcess.GetMainThread: THandle;
 begin
   Result := FMainThread;
 end;
 
-class function TSdaProcess.GetMainThreadId: UINT;
+class function TSdaCurrentProcess.GetMainThreadId: UINT;
 begin
   Result := FMainThreadId;
 end;
 
-class function TSdaProcess.GetParamCount: Integer;
+class function TSdaCurrentProcess.GetParamCount: Integer;
 begin
   Result := System.ParamCount;
 end;
 
-class function TSdaProcess.GetParams(Index: Integer): string;
+class function TSdaCurrentProcess.GetParams(Index: Integer): string;
 begin
   Result := ParamStr(Index);
 end;
 
-class procedure TSdaProcess.SetDefaultLayout(const Value: TProcessDefaultLayout);
+class procedure TSdaCurrentProcess.SetDefaultLayout(const Value: TProcessDefaultLayout);
 begin
   SetProcessDefaultLayout(DWORD(Value));
 end;

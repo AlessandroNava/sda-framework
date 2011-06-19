@@ -46,7 +46,6 @@ type
   public
     property Handle: HDC read FHandle write FHandle;
     class operator Implicit(Value: HDC): TSdaCanvas;
-    class operator Explicit(const Value: TSdaCanvas): HDC;
 
     class function Create(Window: HWND; NonClient: Boolean = false): HDC; overload; static;
     class function Create(CompatibleTo: HDC): HDC; overload; static;
@@ -127,7 +126,6 @@ type
       HotSpot: TPoint): HICON; overload; static;
     procedure DestroyHandle;
     class operator Implicit(Value: HICON): TSdaIcon;
-    class operator Explicit(const Value: TSdaIcon): HICON;
     function CopyHandle: HICON;
 
     property IsCursor: Boolean read GetIsCursor;
@@ -436,11 +434,6 @@ begin
   sdaWindows.Ellipse(FHandle, Rect.Left, Rect.Top, Rect.Right, Rect.Bottom);
 end;
 
-class operator TSdaCanvas.Explicit(const Value: TSdaCanvas): HDC;
-begin
-  Result := Value.Handle;
-end;
-
 procedure TSdaCanvas.FillRect(const Rect: TRect);
 begin
   sdaWindows.FillRect(FHandle, Rect, 0);
@@ -697,7 +690,7 @@ class function TSdaIcon.CreateHandle(Instance: HMODULE; ResName: string; Width,
 var
   dwType: DWORD;
 begin
-  if LoadCursor then dwType := IMAGE_ICON else dwType := IMAGE_CURSOR;
+  if LoadCursor then dwType := IMAGE_CURSOR else dwType := IMAGE_ICON;
   Result := LoadImage(HInstance, PChar(ResName), dwType, Width, Height, Flags);
 end;
 
@@ -719,11 +712,6 @@ end;
 procedure TSdaIcon.Draw(DC: HDC; Left, Top: Integer; AniStep: Integer);
 begin
   DrawIconEx(DC, Left, Top, FHandle, 0, 0, AniStep, 0, DI_NORMAL);
-end;
-
-class operator TSdaIcon.Explicit(const Value: TSdaIcon): HICON;
-begin
-  Result := Value.Handle;
 end;
 
 procedure TSdaIcon.StretchDraw(DC: HDC; const Rect: TRect; AniStep: Integer);

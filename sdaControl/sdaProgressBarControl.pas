@@ -74,7 +74,6 @@ type
       ExStyle: DWORD = 0): HWND; static;
     procedure DestroyHandle;
     class operator Implicit(Value: HWND): TSdaProgressBarControl;
-    class operator Explicit(const Value: TSdaProgressBarControl): HWND;
 
     property Min: Integer read GetMin write SetMin;
     property Max: Integer read GetMax write SetMax;
@@ -118,12 +117,6 @@ end;
 procedure TSdaProgressBarControl.EnableMarquee(const Interval: Integer);
 begin
   SendMessage(Handle, PBM_SETMARQUEE, -1, Interval);
-end;
-
-class operator TSdaProgressBarControl.Explicit(
-  const Value: TSdaProgressBarControl): HWND;
-begin
-  Result := Value.Handle;
 end;
 
 function TSdaProgressBarControl.GetBackColor: TColor;
