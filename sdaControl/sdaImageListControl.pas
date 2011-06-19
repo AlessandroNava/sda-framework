@@ -118,7 +118,7 @@ type
     ildsTransparent = ILD_TRANSPARENT
   );
 
-  TSdaImageListControl = record
+  TSdaImageListControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FHandle: HIMAGELIST;
     function GetCount: Integer;
@@ -134,10 +134,14 @@ type
     function GetDragPosition: TPoint;
   public
     property Handle: HIMAGELIST read FHandle write FHandle;
+
+    {$IFDEF DELPHI}
     class operator Implicit(Value: HIMAGELIST): TSdaImageListControl;
-    class function CreateHandle(Width, Height: Integer; ColorDepth: TImageListColorDepth;
+    {$ENDIF}
+
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Width, Height: Integer; ColorDepth: TImageListColorDepth;
       Masked: Boolean = true; AllocBy: Integer = 4): HIMAGELIST; overload; static;
-    class function CreateHandle(Instance: HMODULE; const BitmapName: string;
+    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Instance: HMODULE; const BitmapName: string;
       Width: Integer; MaskColor: TColor; Flags: DWORD = LR_DEFAULTCOLOR;
       AllocBy: Integer = 4): HIMAGELIST; overload; static;
     procedure DestroyHandle;
@@ -183,6 +187,10 @@ type
     property DragPosition: TPoint read GetDragPosition;
     property DragHotSpot: TPoint read GetDragHotSpot;
   end;
+
+{$IFDEF FPC}
+operator := (Value: HIMAGELIST): TSdaImageListControl;
+{$ENDIF}
 
 function IndexToOverlayMask(Index: Integer): Integer; inline;
 
@@ -281,7 +289,7 @@ function ImageList_Duplicate; external comctl32 name 'ImageList_Duplicate';
 
 { TSdaImageListControl }
 
-class function TSdaImageListControl.CreateHandle(Width, Height: Integer;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaImageListControl.CreateHandle(Width, Height: Integer;
   ColorDepth: TImageListColorDepth; Masked: Boolean;
   AllocBy: Integer): HIMAGELIST;
 var
@@ -337,7 +345,7 @@ begin
   ImageList_Remove(Handle, -1);
 end;
 
-class function TSdaImageListControl.CreateHandle(Instance: HMODULE;
+{$IFDEF DELPHI}class {$ENDIF}function TSdaImageListControl.CreateHandle(Instance: HMODULE;
   const BitmapName: string; Width: Integer; MaskColor: TColor; Flags: DWORD;
   AllocBy: Integer): HIMAGELIST;
 begin
@@ -450,8 +458,11 @@ begin
   ImageList_GetIconSize(Handle, Result, temp);
 end;
 
-class operator TSdaImageListControl.Implicit(
-  Value: HIMAGELIST): TSdaImageListControl;
+{$IFDEF DELPHI}
+class operator TSdaImageListControl.Implicit(Value: HIMAGELIST): TSdaImageListControl;
+{$ELSE}
+operator := (Value: HIMAGELIST): TSdaImageListControl;
+{$ENDIF}
 begin
   Result.Handle := Value;
 end;

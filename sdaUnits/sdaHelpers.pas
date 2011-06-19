@@ -8,7 +8,7 @@ uses
   sdaWindows, sdaMessages;
 
 type
-  TSdaWindowPaintHelper = record
+  TSdaWindowPaintHelper = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FPaintStruct: PAINTSTRUCT;
     FMsgDC: Boolean;
@@ -22,7 +22,7 @@ type
     property DC: HDC read FPaintStruct.hdc;
   end;
 
-  TSdaTimer = record
+  TSdaTimer = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FWindow: HWND;
     FID: Integer;
@@ -38,7 +38,7 @@ type
   TScrollBarPlacing = (sbpControl = SB_CTL, sbpHorizontal = SB_HORZ,
     sbpVertical = SB_VERT);
 
-  TSdaScrollBarHelper = record
+  TSdaScrollBarHelper = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
   private
     FWindow: HWND;
     FPlacing: TScrollBarPlacing;

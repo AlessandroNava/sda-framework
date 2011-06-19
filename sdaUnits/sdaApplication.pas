@@ -9,19 +9,19 @@ uses
 
 type
   TSdaApplication = class(TObject)
-  strict private
+  private
     FModalLevel: Integer;
     FTerminated: BOOL;
     FModalResult: Integer;
     function GetTerminated: Boolean;
     procedure SetTerminated(const Value: Boolean);
     function GetExeName: string;
-  strict private
+  private
     function IsDialogMessage(var Message: TMsg): Boolean;
     procedure HandleApplicationMessage(var Message: TMsg);
     procedure CheckApplicationTerminate;
     procedure DestroyAllWindows;
-  strict protected
+  protected
     procedure Idle; virtual;
     function TryGetMessage(var Message: TMsg): Boolean; virtual;
     procedure DefDispatchMessage(var Message: TMsg); virtual;
