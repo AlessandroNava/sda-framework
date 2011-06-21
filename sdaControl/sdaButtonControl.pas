@@ -61,7 +61,7 @@ type
     biAlignCenter = BUTTON_IMAGELIST_ALIGN_CENTER
   );
 
-  TSdaButtonControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
+  TSdaButtonControl = record
   private
     FHandle: HWND;
     function GetStyle: DWORD;
@@ -82,14 +82,12 @@ type
     procedure SetImageList(const Value: HIMAGELIST);
     procedure SetImageMargins(const Value: TRect);
   public
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Left, Top, Width, Height: Integer;
+    class function CreateHandle(Left, Top, Width, Height: Integer;
       const Caption: string; Parent: HWND = 0;
       Style: DWORD = WS_CHILD or BS_PUSHBUTTON): HWND; static;
     procedure DestroyHandle;
 
-    {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaButtonControl;
-    {$ENDIF}
 
     property Handle: HWND read FHandle write FHandle;
     property Style: DWORD read GetStyle write SetStyle;
@@ -118,10 +116,6 @@ type
     procedure Highlight(Highlight: Boolean = true);
   end;
 
-{$IFDEF FPC}
-operator := (Value: HWND): TSdaButtonControl;
-{$ENDIF}
-
 implementation
 
 { TSdaButtonControl }
@@ -131,7 +125,7 @@ begin
   SendMessage(FHandle, BM_CLICK, 0, 0);
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaButtonControl.CreateHandle(Left, Top, Width, Height: Integer;
+class function TSdaButtonControl.CreateHandle(Left, Top, Width, Height: Integer;
   const Caption: string; Parent: HWND; Style: DWORD): HWND;
 begin
   Result := CreateWindowEx(0, WC_BUTTON, PChar(Caption), Style, Left, Top,
@@ -213,11 +207,7 @@ begin
   SendMessage(FHandle, BM_SETSTATE, WPARAM(BOOL(Highlight)), 0);
 end;
 
-{$IFDEF DELPHI}
 class operator TSdaButtonControl.Implicit(Value: HWND): TSdaButtonControl;
-{$ELSE}
-operator := (Value: HWND): TSdaButtonControl;
-{$ENDIF}
 begin
   Result.Handle := Value;
 end;

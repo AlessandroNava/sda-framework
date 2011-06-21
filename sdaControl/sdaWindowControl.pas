@@ -8,7 +8,7 @@ uses
   sdaWindows, sdaMessages;
 
 type
-  TSdaWindowControl = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
+  TSdaWindowControl = record
   private
     FHandle: HWND;
     function GetWindowClass: string;
@@ -42,15 +42,13 @@ type
     procedure SetParent(const Value: HWND);
   public
     property Handle: HWND read FHandle write FHandle;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(const ClassName: string; Style: DWORD;
+    class function CreateHandle(const ClassName: string; Style: DWORD;
       ExStyle: DWORD; const Caption: string; Left, Top, Width, Height: Integer;
       Parent: HWND = 0; Instance: HINST = 0; Menu: HMENU = 0; Param: Pointer = nil): HWND; static;
 
     procedure DestroyHandle;
 
-    {$IFDEF DELPHI}
     class operator Implicit(Value: HWND): TSdaWindowControl;
-    {$ENDIF}
 
     property Style: DWORD read GetStyle write SetStyle;
     property ExStyle: DWORD read GetExStyle write SetExStyle;
@@ -92,15 +90,11 @@ type
       FlashCaption: Boolean = true; Timeout: Integer = 0); overload;
   end;
 
-{$IFDEF FPC}
-operator := (Value: HWND): TSdaWindowControl;
-{$ENDIF}
-
 implementation
 
 { TWindowsControl }
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaWindowControl.CreateHandle(const ClassName: string;
+class function TSdaWindowControl.CreateHandle(const ClassName: string;
   Style, ExStyle: DWORD; const Caption: string; Left, Top, Width, Height: Integer;
   Parent: HWND; Instance: HINST; Menu: HMENU; Param: Pointer): HWND;
 begin
@@ -290,11 +284,7 @@ begin
   FlashWindowEx(fi);
 end;
 
-{$IFDEF DELPHI}
 class operator TSdaWindowControl.Implicit(Value: HWND): TSdaWindowControl;
-{$ELSE}
-operator := (Value: HWND): TSdaWindowControl;
-{$ENDIF}
 begin
   Result.Handle := Value;
 end;
