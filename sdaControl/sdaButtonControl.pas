@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, sdaMessages, sdaCommCtrl;
+  sdaWindows, sdaCommCtrl;
 
 // http://msdn.microsoft.com/en-us/library/bb775943(VS.85).aspx
 
@@ -17,6 +17,67 @@ const
   BUTTON_IMAGELIST_ALIGN_TOP      = 2;
   BUTTON_IMAGELIST_ALIGN_BOTTOM   = 3;
   BUTTON_IMAGELIST_ALIGN_CENTER   = 4;
+
+{ Button Control Styles }
+const
+  BS_PUSHBUTTON = 0;
+  BS_DEFPUSHBUTTON = 1;
+  BS_CHECKBOX = 2;
+  BS_AUTOCHECKBOX = 3;
+  BS_RADIOBUTTON = 4;
+  BS_3STATE = 5;
+  BS_AUTO3STATE = 6;
+  BS_GROUPBOX = 7;
+  BS_USERBUTTON = 8;
+  BS_AUTORADIOBUTTON = 9;
+  BS_OWNERDRAW = 11;
+  BS_LEFTTEXT = $20;
+  BS_TEXT = 0;
+  BS_ICON = $40;
+  BS_BITMAP = $80;
+  BS_LEFT = $100;
+  BS_RIGHT = $200;
+  BS_CENTER = 768;
+  BS_TOP = $400;
+  BS_BOTTOM = $800;
+  BS_VCENTER = 3072;
+  BS_PUSHLIKE = $1000;
+  BS_MULTILINE = $2000;
+  BS_NOTIFY = $4000;
+  BS_FLAT = $8000;
+  BS_RIGHTBUTTON = BS_LEFTTEXT;
+
+  BST_UNCHECKED = 0;
+  BST_CHECKED = 1;
+  BST_INDETERMINATE = 2;
+  BST_PUSHED = 4;
+  BST_FOCUS = 8;
+
+{ Button Notification Codes }
+const
+  BN_CLICKED       = 0;
+  BN_PAINT         = 1;
+  BN_HILITE        = 2;
+  BN_UNHILITE      = 3;
+  BN_DISABLE       = 4;
+  BN_DOUBLECLICKED = 5;
+  BN_PUSHED = BN_HILITE;
+  BN_UNPUSHED = BN_UNHILITE;
+  BN_DBLCLK = BN_DOUBLECLICKED;
+  BN_SETFOCUS = 6;
+  BN_KILLFOCUS = 7;
+
+{ Button Control Messages }
+const
+  BM_GETCHECK = $00F0;
+  BM_SETCHECK = $00F1;
+  BM_GETSTATE = $00F2;
+  BM_SETSTATE = $00F3;
+  BM_SETSTYLE = $00F4;
+  BM_CLICK    = $00F5;
+  BM_GETIMAGE = $00F6;
+  BM_SETIMAGE = $00F7;
+  BM_SETDONTCLICK = $00F8;
 
 type
   BUTTON_IMAGELIST = packed record
