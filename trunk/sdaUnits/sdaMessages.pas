@@ -308,33 +308,6 @@ const
 
   WM_USER             = $0400;
 
-{ Button Notification Codes }
-
-const
-  BN_CLICKED       = 0;
-  BN_PAINT         = 1;
-  BN_HILITE        = 2;
-  BN_UNHILITE      = 3;
-  BN_DISABLE       = 4;
-  BN_DOUBLECLICKED = 5;
-  BN_PUSHED = BN_HILITE;
-  BN_UNPUSHED = BN_UNHILITE;
-  BN_DBLCLK = BN_DOUBLECLICKED;
-  BN_SETFOCUS = 6;
-  BN_KILLFOCUS = 7;
-
-{ Button Control Messages }
-const
-  BM_GETCHECK = $00F0;
-  BM_SETCHECK = $00F1;
-  BM_GETSTATE = $00F2;
-  BM_SETSTATE = $00F3;
-  BM_SETSTYLE = $00F4;
-  BM_CLICK    = $00F5;
-  BM_GETIMAGE = $00F6;
-  BM_SETIMAGE = $00F7;
-  BM_SETDONTCLICK = $00F8;
-
 { Listbox Notification Codes }
 
 const
