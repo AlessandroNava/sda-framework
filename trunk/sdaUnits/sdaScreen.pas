@@ -8,7 +8,7 @@ uses
   sdaWindows, sdaSysUtils;
 
 type
-  TSdaScreen = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
+  TSdaScreen = record
   private
     function GetHeight: Integer;
     function GetWidth: Integer;

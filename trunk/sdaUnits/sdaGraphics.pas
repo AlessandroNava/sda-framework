@@ -18,7 +18,7 @@ type
   TLineDDACallback = procedure(X, Y: Integer) of object;
 
 type
-  TSdaCanvas = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
+  TSdaCanvas = record
   private
     FHandle: HDC;
     function GetBrush: HBRUSH;
@@ -46,15 +46,13 @@ type
   public
     property Handle: HDC read FHandle write FHandle;
 
-    {$IFDEF DELPHI}
     class operator Implicit(Value: HDC): TSdaCanvas;
-    {$ENDIF}
 
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Window: HWND; NonClient: Boolean = false): HDC; overload; static;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(CompatibleTo: HDC): HDC; overload; static;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(const Driver, Device: string;
+    class function CreateHandle(Window: HWND; NonClient: Boolean = false): HDC; overload; static;
+    class function CreateHandle(CompatibleTo: HDC): HDC; overload; static;
+    class function CreateHandle(const Driver, Device: string;
       const DevMode: TDevMode): HDC; overload; static;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(const Driver, Device: string;
+    class function CreateHandle(const Driver, Device: string;
       DevMode: PDevMode): HDC; overload; static;
     procedure DestroyHandle;
 
@@ -107,11 +105,7 @@ type
     procedure PaintDesktop;
   end;
 
-{$IFDEF FPC}
-operator := (Value: HDC): TSdaCanvas;
-{$ENDIF}
-
-  TSdaIcon = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
+  TSdaIcon = record
   private
     FHandle: HICON;
     function GetIconSizes: TSize;
@@ -121,21 +115,19 @@ operator := (Value: HDC): TSdaCanvas;
     function GetHotSpot: TPoint;
   public
     property Handle: HICON read FHandle write FHandle;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Instance: HMODULE; ResName: string;
+    class function CreateHandle(Instance: HMODULE; ResName: string;
       Width, Height: Integer; LoadCursor: Boolean = false;
       Flags: DWORD = LR_DEFAULTCOLOR): HICON; overload; static;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(const Data; DataSize: Integer;
+    class function CreateHandle(const Data; DataSize: Integer;
       Width, Height: Integer; CreateCursor: Boolean = false;
       Flags: DWORD = LR_DEFAULTCOLOR): HICON; overload; static;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(const Image, Mask; Width, Height, ColorDepth: Integer;
+    class function CreateHandle(const Image, Mask; Width, Height, ColorDepth: Integer;
       CreateCursor: Boolean; HotSpot: TPoint): HICON; overload; static;
-    {$IFDEF DELPHI}class {$ENDIF}function CreateHandle(Image, Mask: HBITMAP; CreateCursor: Boolean;
+    class function CreateHandle(Image, Mask: HBITMAP; CreateCursor: Boolean;
       HotSpot: TPoint): HICON; overload; static;
     procedure DestroyHandle;
 
-    {$IFDEF DELPHI}
     class operator Implicit(Value: HICON): TSdaIcon;
-    {$ENDIF}
 
     function CopyHandle: HICON;
 
@@ -147,10 +139,6 @@ operator := (Value: HDC): TSdaCanvas;
     procedure Draw(DC: HDC; Left, Top: Integer; AniStep: Integer = 0);
     procedure StretchDraw(DC: HDC; const Rect: TRect; AniStep: Integer = 0);
   end;
-
-{$IFDEF FPC}
-operator := (Value: HICON): TSdaIcon;
-{$ENDIF}
 
 const
   clSystemColor = $FF000000;
@@ -406,25 +394,25 @@ begin
     Start.X, Start.Y, Finish.X, Finish.Y);
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaCanvas.CreateHandle(const Driver, Device: string;
+class function TSdaCanvas.CreateHandle(const Driver, Device: string;
   DevMode: PDevMode): HDC;
 begin
   if AnsiSameText(Driver, 'DISPLAY') then DevMode := nil;
   Result := CreateDC(PChar(Driver), PChar(Device), nil, @DevMode);
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaCanvas.CreateHandle(Window: HWND; NonClient: Boolean): HDC;
+class function TSdaCanvas.CreateHandle(Window: HWND; NonClient: Boolean): HDC;
 begin
   if NonClient then Result := GetWindowDC(Window)
     else Result := GetDC(Window);
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaCanvas.CreateHandle(CompatibleTo: HDC): HDC;
+class function TSdaCanvas.CreateHandle(CompatibleTo: HDC): HDC;
 begin
   Result := CreateCompatibleDC(CompatibleTo);
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaCanvas.CreateHandle(const Driver, Device: string;
+class function TSdaCanvas.CreateHandle(const Driver, Device: string;
   const DevMode: TDevMode): HDC;
 begin
   if AnsiSameText(Driver, 'DISPLAY')
@@ -529,11 +517,7 @@ begin
   Result := GetPixel(FHandle, X, Y);
 end;
 
-{$IFDEF DELPHI}
 class operator TSdaCanvas.Implicit(Value: HDC): TSdaCanvas;
-{$ELSE}
-operator := (Value: HDC): TSdaCanvas;
-{$ENDIF}
 begin
   Result.Handle := Value;
 end;
@@ -704,7 +688,7 @@ begin
   Result := CopyIcon(FHandle);
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaIcon.CreateHandle(Instance: HMODULE; ResName: string; Width,
+class function TSdaIcon.CreateHandle(Instance: HMODULE; ResName: string; Width,
   Height: Integer; LoadCursor: Boolean; Flags: DWORD): HICON;
 var
   dwType: DWORD;
@@ -713,7 +697,7 @@ begin
   Result := LoadImage(HInstance, PChar(ResName), dwType, Width, Height, Flags);
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaIcon.CreateHandle(const Data; DataSize, Width,
+class function TSdaIcon.CreateHandle(const Data; DataSize, Width,
   Height: Integer; CreateCursor: Boolean; Flags: DWORD): HICON;
 begin
   if (@Data = nil) or (DataSize <= 0) then Exit(0);
@@ -799,16 +783,12 @@ begin
   Result := GetIconSizes.cx;
 end;
 
-{$IFDEF DELPHI}
 class operator TSdaIcon.Implicit(Value: HICON): TSdaIcon;
-{$ELSE}
-operator := (Value: HICON): TSdaIcon;
-{$ENDIF}
 begin
   Result.Handle := Value;
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaIcon.CreateHandle(const Image, Mask; Width, Height,
+class function TSdaIcon.CreateHandle(const Image, Mask; Width, Height,
   ColorDepth: Integer; CreateCursor: Boolean; HotSpot: TPoint): HICON;
 begin
   if CreateCursor then
@@ -821,7 +801,7 @@ begin
   end;
 end;
 
-{$IFDEF DELPHI}class {$ENDIF}function TSdaIcon.CreateHandle(Image, Mask: HBITMAP; CreateCursor: Boolean;
+class function TSdaIcon.CreateHandle(Image, Mask: HBITMAP; CreateCursor: Boolean;
   HotSpot: TPoint): HICON;
 var
   ii: ICONINFO;

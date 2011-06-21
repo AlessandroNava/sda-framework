@@ -10,7 +10,7 @@ uses
 type
   TProcessDefaultLayout = (LayoutLTR = LAYOUT_LTR, LayoutRTL = LAYOUT_RTL);
 
-  TSdaCurrentProcess = {$IFDEF FPC}object{$ELSE}record{$ENDIF}
+  TSdaCurrentProcess = record
   private
     function GetCommandLine: string;
     function GetHandle: THandle;
