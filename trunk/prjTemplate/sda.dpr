@@ -29,7 +29,8 @@ uses
   sdaSystem in '..\sdaUnits\sdaSystem.pas',
   sdaSysUtils in '..\sdaUnits\sdaSysUtils.pas',
   sdaWindows in '..\sdaUnits\sdaWindows.pas',
-  sdaStaticControl in '..\sdaControl\sdaStaticControl.pas';
+  sdaStaticControl in '..\sdaControl\sdaStaticControl.pas',
+  sdaAccelControl in '..\sdaControl\sdaAccelControl.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;

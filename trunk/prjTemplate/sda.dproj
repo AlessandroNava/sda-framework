@@ -77,6 +77,7 @@
 			<DCCReference Include="..\sdaUnits\sdaSysUtils.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaWindows.pas"/>
 			<DCCReference Include="..\sdaControl\sdaStaticControl.pas"/>
+			<DCCReference Include="..\sdaControl\sdaAccelControl.pas"/>
 			<None Include="sda.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>
