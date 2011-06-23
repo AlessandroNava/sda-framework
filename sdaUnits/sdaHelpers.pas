@@ -73,7 +73,26 @@ type
     function HandleScrollMessage(var Message: TMessage): Boolean;
   end;
 
+  TSdaTranslateAccelHelper = record
+  private
+    FAccel: array of HACCEL;
+    function GetCount: Integer; inline;
+    function GetItem(Index: Integer): HACCEL; inline;
+    procedure SetItem(Index: Integer; const Value: HACCEL); inline;
+  public
+    property Items[Index: Integer]: HACCEL read GetItem write SetItem; default;
+    property Count: Integer read GetCount;
+
+    procedure Add(Accel: HACCEL);
+    procedure Delete(Accel: HACCEL; Destroy: Boolean = false);
+    procedure Clear(Destroy: Boolean = false);
+    procedure HandleAccelMessage(var Message: TMessage);
+  end;
+
 implementation
+
+uses
+  sdaSystem;
 
 { TSdaWindowPaintHelper }
 
@@ -296,6 +315,75 @@ end;
 procedure TSdaScrollBarHelper.SetVisible(const Value: Boolean);
 begin
   ShowScrollBar(FWindow, Integer(FPlacing), Value);
+end;
+
+{ TSdaTranslateAccelHelper }
+
+procedure TSdaTranslateAccelHelper.Add(Accel: HACCEL);
+var
+  i: Integer;
+begin
+  for i := 0 to High(FAccel) do
+    if FAccel[i] = Accel then Exit;
+  SetLength(FAccel, Length(FAccel) + 1);
+  FAccel[High(FAccel)] := Accel;
+end;
+
+procedure TSdaTranslateAccelHelper.Clear(Destroy: Boolean);
+var
+  i: Integer;
+begin
+  if Destroy then
+    for i := 0 to High(FAccel) do
+      DestroyAcceleratorTable(FAccel[i]);
+  SetLength(FAccel, 0);
+end;
+
+procedure TSdaTranslateAccelHelper.Delete(Accel: HACCEL; Destroy: Boolean);
+var
+  i: Integer;
+  tmp: HACCEL;
+begin
+  for i := 0 to High(FAccel) do
+    if FAccel[i] = Accel then
+    begin
+      tmp := FAccel[i];
+      if i < High(FAccel) then FAccel[i] := FAccel[High(FAccel)];
+      SetLength(FAccel, Length(FAccel) - 1);
+      if Destroy then DestroyAcceleratorTable(tmp);
+      Exit;
+    end;
+end;
+
+function TSdaTranslateAccelHelper.GetCount: Integer;
+begin
+  Result := Length(FAccel);
+end;
+
+function TSdaTranslateAccelHelper.GetItem(Index: Integer): HACCEL;
+begin
+  Result := FAccel[Index];
+end;
+
+procedure TSdaTranslateAccelHelper.HandleAccelMessage(var Message: TMessage);
+var
+  i: Integer;
+  msg: PMsg;
+begin
+  if Message.Msg <> SDAM_TRANSLATEACCEL then Exit;
+  msg := PMsg(Message.LParam);
+  for i := 0 to High(FAccel) do
+    if TranslateAccelerator(msg.hwnd, FAccel[i], msg^) <> 0 then
+    begin
+      Message.Result := 1;
+      Exit;
+    end;
+  Message.Result := 0;
+end;
+
+procedure TSdaTranslateAccelHelper.SetItem(Index: Integer; const Value: HACCEL);
+begin
+  FAccel[Index] := Value;
 end;
 
 end.
