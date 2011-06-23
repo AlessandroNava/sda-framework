@@ -18,6 +18,7 @@ type
     function GetExeName: string;
   private
     function IsDialogMessage(var Message: TMsg): Boolean;
+    function TranslateAccelerator(var Message: TMsg): Boolean;
     procedure HandleApplicationMessage(var Message: TMsg);
     procedure CheckApplicationTerminate;
     procedure DestroyAllWindows;
@@ -60,6 +61,9 @@ procedure SdaApplicationInitialize(ApplicationClass: TSdaApplicationClass = nil)
 procedure SdaApplicationFinalize;
 
 implementation
+
+uses
+  sdaSystem;
 
 function SdaMessageDlg(const Text, Caption: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; const IconResName: string;
@@ -156,6 +160,11 @@ begin
   Result := sdaWindows.IsDialogMessage(wnd, Message);
 end;
 
+function TSdaApplication.TranslateAccelerator(var Message: TMsg): Boolean;
+begin
+  Result := BOOL(SendMessage(Message.hwnd, SDAM_TRANSLATEACCEL, 0, LPARAM(@Message)));
+end;
+
 function TSdaApplication.TryGetMessage(var Message: TMsg): Boolean;
 var
   Unicode: Boolean;
@@ -183,12 +192,13 @@ var
   Unicode: Boolean;
 begin
   if not IsDialogMessage(Message) then
-  begin
-    TranslateMessage(Message);
-    Unicode := (Message.hwnd = 0) or IsWindowUnicode(Message.hwnd);
-    if Unicode then DispatchMessageW(Message)
-               else DispatchMessageA(Message);
-  end;
+    if not TranslateAccelerator(Message) then
+    begin
+      TranslateMessage(Message);
+      Unicode := (Message.hwnd = 0) or IsWindowUnicode(Message.hwnd);
+      if Unicode then DispatchMessageW(Message)
+                 else DispatchMessageA(Message);
+    end;
 end;
 
 function TSdaApplication.BeginModal(Wnd: HWND): Integer;
