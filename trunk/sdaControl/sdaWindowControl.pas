@@ -178,9 +178,17 @@ end;
 function TSdaWindowControl.GetLeft: Integer;
 var
   rc: TRect;
+  h: HWND;
 begin
-  if GetWindowRect(Handle, rc) then Result := rc.Left
-    else Result := 0;
+  if GetWindowRect(Handle, rc) then
+  begin
+    if GetWindowLongPtr(Handle, GWL_STYLE) and WS_CHILD = WS_CHILD then
+    begin
+      h := sdaWindows.GetParent(Handle);
+      if h <> 0 then ScreenToClient(h, rc.TopLeft);
+    end;
+    Result := rc.Left;
+  end else Result := 0;
 end;
 
 function TSdaWindowControl.GetParent: HWND;
@@ -191,9 +199,17 @@ end;
 function TSdaWindowControl.GetTop: Integer;
 var
   rc: TRect;
+  h: HWND;
 begin
-  if GetWindowRect(Handle, rc) then Result := rc.Top
-    else Result := 0;
+  if GetWindowRect(Handle, rc) then
+  begin
+    if GetWindowLongPtr(Handle, GWL_STYLE) and WS_CHILD = WS_CHILD then
+    begin
+      h := sdaWindows.GetParent(Handle);
+      if h <> 0 then ScreenToClient(h, rc.TopLeft);
+    end;
+    Result := rc.Top;
+  end else Result := 0;
 end;
 
 function TSdaWindowControl.GetVisible: Boolean;
