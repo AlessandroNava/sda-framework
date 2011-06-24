@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaSystem, sdaWindows, sdaMessages;
+  sdaSystem, sdaWindows, sdaMessages, sdaSysUtils;
 
 type
   TSdaDialogObject = class(TObject)
