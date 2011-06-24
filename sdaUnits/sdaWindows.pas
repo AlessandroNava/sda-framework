@@ -15190,6 +15190,10 @@ const
   ODT_COMBOBOX = 3;
   ODT_BUTTON = 4;
   ODT_STATIC = 5;
+  { From CommCtrl.pas }
+  ODT_HEADER   = 100;
+  ODT_TAB      = 101;
+  ODT_LISTVIEW = 102;
 
   { Owner draw actions }
   ODA_DRAWENTIRE = 1;
@@ -15206,11 +15210,8 @@ const
   ODS_COMBOBOXEDIT = $1000;
   ODS_HOTLIGHT = $40;
   ODS_INACTIVE = $80;
-
-type
-  TOwnerDrawState = set of (odSelected, odGrayed, odDisabled, odChecked,
-    odFocused, odDefault, odHotLight, odInactive, odNoAccel, odNoFocusRect,
-    odReserved1, odReserved2, odComboBoxEdit);
+  ODS_NOACCEL = $0100; // ??
+  ODS_NOFOCUSRECT = $0200; // ??
 
 type
   { for ownerdraw }

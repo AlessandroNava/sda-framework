@@ -89,10 +89,84 @@ type
     procedure HandleAccelMessage(var Message: TMessage);
   end;
 
+  TOwnerDrawControl = (
+    OwnerDrawButton = ODT_BUTTON,     // Only draw
+    OwnerDrawComboBox = ODT_COMBOBOX, // Measure & draw
+    OwnerDrawListBox = ODT_LISTBOX,   // Measure & draw
+    OwnerDrawListView = ODT_LISTVIEW, // Measure & draw
+    OwnerDrawMenu = ODT_MENU,         // Measure & draw
+    OwnerDrawStatic = ODT_STATIC,     // Only draw
+    OwnerDrawTabControl = ODT_TAB,    // Only draw
+    OwnerDrawHeader = ODT_HEADER      // ??
+  );
+
+  TMeasureItemEvent = procedure(Control: TOwnerDrawControl;
+    ControlID, ItemIndex: Integer; var Width, Height: Integer;
+    Data: Pointer; var Handled: Boolean) of object;
+
+  TSdaMeasureItemHelper = record
+  public
+    class procedure HandleMeasureMessage(var Message: TWMMeasureItem;
+      const Handler: TMeasureItemEvent); static;
+  end;
+
+  TOwnerDrawAction = set of (
+    DrawActionDrawEntire, // ODA_DRAWENTIRE
+    DrawActionFocus,      // ODA_FOCUS
+    DrawActionSelect      // ODA_SELECT
+  );
+
+  TOwnerDrawState = set of (
+    DrawStateChecked,      // ODS_CHECKED - only menu
+    DrawStateComboBoxEdit, // ODS_COMBOBOXEDIT - edit control of combo box
+    DrawStateDefault,      // ODS_DEFAULT
+    DrawStateDisabled,     // ODS_DISABLED
+    DrawStateFocus,        // ODS_FOCUS
+    DrawStateGrayed,       // ODS_GRAYED - only menu
+    DrawStateHotLight,     // ODS_HOTLIGHT
+    DrawStateInactive,     // ODS_INACTIVE
+    DrawStateNoAccel,      // ODS_NOACCEL
+    DrawStateNoFocusRect,  // ODS_NOFOCUSRECT
+    DrawStateSelected      // ODS_SELECTED
+  );
+
+  TDrawItemEvent = procedure(Control: TOwnerDrawControl; ControlID,
+    ItemIndex: Integer; Action: TOwnerDrawAction; State: TOwnerDrawState;
+    Handle: THandle { HWND or HMENU }; DC: HDC; const Rect: TRect;
+    Data: Pointer; var Handled: Boolean) of object;
+
+  TSdaDrawItemHelper = record
+  public
+    class procedure HandleDrawMessage(var Message: TWMDrawItem;
+      const Handler: TDrawItemEvent); static;
+  end;
+
+  TSubclassProcedure = procedure(Window: HWND; var Message: TMessage;
+    var Handled: Boolean) of object;
+
+  TSdaSubclassHelper = record
+  public
+    class procedure Apply(Window: HWND; Proc: TSubclassProcedure); static;
+    class procedure Remove(Window: HWND; Proc: TSubclassProcedure); static;
+  end;
+
+  TSdaSubclassObject = class(TObject)
+  private
+    FHandle: HWND;
+    FHandled: Boolean;
+    procedure SubclassProc(Window: HWND; var Message: TMessage; var Handled: Boolean);
+    procedure SetHandle(const Value: HWND);
+  public
+    constructor Create(Window: HWND = 0); virtual;
+    destructor Destroy; override;
+    property Handle: HWND read FHandle write SetHandle;
+    procedure DefaultHandler(var Message); override;
+  end;
+
 implementation
 
 uses
-  sdaSystem;
+  sdaSystem, sdaCommCtrl;
 
 { TSdaWindowPaintHelper }
 
@@ -384,6 +458,161 @@ end;
 procedure TSdaTranslateAccelHelper.SetItem(Index: Integer; const Value: HACCEL);
 begin
   FAccel[Index] := Value;
+end;
+
+{ TSdaMeasureItemHelper }
+
+class procedure TSdaMeasureItemHelper.HandleMeasureMessage(var Message: TWMMeasureItem;
+  const Handler: TMeasureItemEvent);
+var
+  w, h: Integer;
+  Handled: Boolean;
+begin
+  Message.Result := LRESULT(BOOL(false));
+  if not Assigned(Handler) then Exit;
+  w := Message.MeasureItemStruct.itemWidth;
+  h := Message.MeasureItemStruct.itemHeight;
+  Handled := true;
+  Handler(TOwnerDrawControl(Message.MeasureItemStruct.CtlType),
+    Message.MeasureItemStruct.CtlID, Message.MeasureItemStruct.itemID,
+    w, h, Pointer(Message.MeasureItemStruct.itemData), Handled);
+  if Handled then
+  begin
+    Message.MeasureItemStruct.itemWidth := w;
+    Message.MeasureItemStruct.itemHeight := h;
+  end;
+  Message.Result := LRESULT(BOOL(Handled));
+end;
+
+{ TSdaDrawItemHelper }
+
+class procedure TSdaDrawItemHelper.HandleDrawMessage(var Message: TWMDrawItem;
+  const Handler: TDrawItemEvent);
+var
+  Handled: Boolean;
+  Action: TOwnerDrawAction;
+  State: TOwnerDrawState;
+begin
+  Message.Result := LRESULT(BOOL(false));
+  if not Assigned(Handler) then Exit;
+  Handled := true;
+
+  Action := [];
+  if Message.DrawItemStruct.itemAction and ODA_DRAWENTIRE = ODA_DRAWENTIRE then
+    Include(Action, DrawActionDrawEntire);
+  if Message.DrawItemStruct.itemAction and ODA_FOCUS = ODA_FOCUS then
+    Include(Action, DrawActionFocus);
+  if Message.DrawItemStruct.itemAction and ODA_SELECT = ODA_SELECT then
+    Include(Action, DrawActionSelect);
+
+  State := [];
+  if Message.DrawItemStruct.itemState and ODS_CHECKED = ODS_CHECKED then
+    Include(State, DrawStateChecked);
+  if Message.DrawItemStruct.itemState and ODS_COMBOBOXEDIT = ODS_COMBOBOXEDIT then
+    Include(State, DrawStateComboBoxEdit);
+  if Message.DrawItemStruct.itemState and ODS_DEFAULT = ODS_DEFAULT then
+    Include(State, DrawStateDefault);
+  if Message.DrawItemStruct.itemState and ODS_DISABLED = ODS_DISABLED then
+    Include(State, DrawStateDisabled);
+  if Message.DrawItemStruct.itemState and ODS_FOCUS = ODS_FOCUS then
+    Include(State, DrawStateFocus);
+  if Message.DrawItemStruct.itemState and ODS_GRAYED = ODS_GRAYED then
+    Include(State, DrawStateGrayed);
+  if Message.DrawItemStruct.itemState and ODS_HOTLIGHT = ODS_HOTLIGHT then
+    Include(State, DrawStateHotLight);
+  if Message.DrawItemStruct.itemState and ODS_INACTIVE = ODS_INACTIVE then
+    Include(State, DrawStateInactive);
+  if Message.DrawItemStruct.itemState and ODS_NOACCEL = ODS_NOACCEL then
+    Include(State, DrawStateNoAccel);
+  if Message.DrawItemStruct.itemState and ODS_NOFOCUSRECT = ODS_NOFOCUSRECT then
+    Include(State, DrawStateNoFocusRect);
+  if Message.DrawItemStruct.itemState and ODS_SELECTED = ODS_SELECTED then
+    Include(State, DrawStateSelected);
+
+  Handler(TOwnerDrawControl(Message.DrawItemStruct.CtlType),
+    Message.DrawItemStruct.CtlID, Message.DrawItemStruct.itemID,
+    Action, State, Message.DrawItemStruct.hwndItem,
+    Message.DrawItemStruct.hDC, Message.DrawItemStruct.rcItem,
+    Pointer(Message.DrawItemStruct.itemData), Handled);
+  Message.Result := LRESULT(BOOL(Handled));
+end;
+
+{ TSdaSubclassHelper }
+
+function SubclassProc(hWnd: HWND; uMsg: UINT; wParam: WPARAM; lParam: LPARAM;
+  uIdSubclass: UINT_PTR; dwRefData: DWORD_PTR): LRESULT; stdcall;
+var
+  Message: TMessage;
+  Handled: Boolean;
+  Obj: Pointer absolute dwRefData;
+  Proc: Pointer absolute uIdSubclass;
+  Meth: TSubclassProcedure;
+begin
+  if uMsg = WM_NCDESTROY then
+    RemoveWindowSubclass(hWnd, @SubclassProc, uIdSubclass);
+  if Assigned(Obj) and Assigned(Proc) then
+  begin
+    Handled := true;
+    TMethod(Meth).Code := Proc;
+    TMethod(Meth).Data := Obj;
+    Message.Msg := uMsg;
+    Message.WParam := wParam;
+    Message.LParam := lParam;
+    Message.Result := 0;
+    Meth(hWnd, Message, Handled);
+  end else Handled := false;
+  if Handled then Result := Message.Result
+    else Result := DefSubclassProc(hWnd, uMsg, wParam, lParam);
+end;
+
+class procedure TSdaSubclassHelper.Apply(Window: HWND; Proc: TSubclassProcedure);
+begin
+  SetWindowSubclass(Window, SubclassProc, DWORD(TMethod(Proc).Code),
+    DWORD(TMethod(Proc).Data));
+end;
+
+class procedure TSdaSubclassHelper.Remove(Window: HWND; Proc: TSubclassProcedure);
+begin
+  RemoveWindowSubclass(Window, SubclassProc, DWORD(TMethod(Proc).Code));
+end;
+
+{ TSdaSubclassObject }
+
+constructor TSdaSubclassObject.Create(Window: HWND);
+begin
+  inherited Create;
+  FHandle := Window;
+  if Handle <> 0 then TSdaSubclassHelper.Apply(Handle, SubclassProc);
+end;
+
+destructor TSdaSubclassObject.Destroy;
+begin
+  if Handle <> 0 then TSdaSubclassHelper.Remove(Handle, SubclassProc);
+  inherited Destroy;
+end;
+
+procedure TSdaSubclassObject.DefaultHandler(var Message);
+begin
+  FHandled := false;
+end;
+
+procedure TSdaSubclassObject.SetHandle(const Value: HWND);
+begin
+  if Handle <> 0 then TSdaSubclassHelper.Remove(Handle, SubclassProc);
+  FHandle := Value;
+  if Handle <> 0 then TSdaSubclassHelper.Apply(Handle, SubclassProc);
+end;
+
+procedure TSdaSubclassObject.SubclassProc(Window: HWND; var Message: TMessage;
+  var Handled: Boolean);
+begin
+  if Window <> Handle then
+  begin
+    Handled := false;
+    Exit;
+  end;
+  FHandled := Handled;
+  Dispatch(Message);
 end;
 
 end.

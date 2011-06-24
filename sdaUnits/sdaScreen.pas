@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, sdaSysUtils;
+  sdaWindows;
 
 type
   TSdaScreen = record
