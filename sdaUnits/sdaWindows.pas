@@ -3255,6 +3255,23 @@ function GetProcessWorkingSetSize(hProcess: THandle;
 function SetProcessWorkingSetSize(hProcess: THandle;
   dwMinimumWorkingSetSize, dwMaximumWorkingSetSize: DWORD): BOOL; stdcall;
 function OpenProcess(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwProcessId: DWORD): THandle; stdcall;
+
+const
+//  THREAD_ALL_ACCESS
+  THREAD_DIRECT_IMPERSONATION = $0200;
+  THREAD_GET_CONTEXT = $0008;
+  THREAD_IMPERSONATE = $0100;
+  THREAD_QUERY_INFORMATION = $0040;
+  THREAD_QUERY_LIMITED_INFORMATION = $0800;
+  THREAD_SET_CONTEXT = $0010;
+  THREAD_SET_INFORMATION = $0020;
+  THREAD_SET_LIMITED_INFORMATION = $0400;
+  THREAD_SET_THREAD_TOKEN = $0080;
+  THREAD_SUSPEND_RESUME = $0002;
+  THREAD_TERMINATE = $0001;
+
+function OpenThread(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwThreadId: DWORD): THandle; stdcall;
+
 function GetCurrentProcess: THandle; stdcall;
 function GetCurrentProcessId: DWORD; stdcall;
 procedure ExitProcess(uExitCode: UINT); stdcall;
@@ -22416,6 +22433,9 @@ function OpenMutex; external kernel32 name 'OpenMutexW';
 function OpenMutexA; external kernel32 name 'OpenMutexA';
 function OpenMutexW; external kernel32 name 'OpenMutexW';
 function OpenProcess; external kernel32 name 'OpenProcess';
+
+function OpenThread; external kernel32 name 'OpenThread';
+
 function OpenRaw; external kernel32 name 'OpenRaw';
 function OpenRawA; external kernel32 name 'OpenRawA';
 function OpenRawW; external kernel32 name 'OpenRawW';
