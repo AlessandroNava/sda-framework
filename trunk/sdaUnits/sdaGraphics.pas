@@ -54,6 +54,7 @@ type
       const DevMode: TDevMode): HDC; overload; static;
     class function CreateHandle(const Driver, Device: string;
       DevMode: PDevMode): HDC; overload; static;
+    class function CreateHandle(Bitmap: HBITMAP): HDC; overload; static;
     procedure DestroyHandle;
 
     property Pen: HPEN read GetPen write SetPen;
@@ -97,8 +98,12 @@ type
     procedure LineDDA(const Start, Finish: TPoint;
       const Callback: TLineDDACallback);
 
+    procedure CopyRect(const Dest: TRect; DC: HDC; const Src: TRect);
+
     procedure Save;
     procedure Restore;
+
+    function UnselectBitmap: HBITMAP;
 
     procedure Flush;
     procedure CancelPendingOperations;
@@ -138,6 +143,49 @@ type
 
     procedure Draw(DC: HDC; Left, Top: Integer; AniStep: Integer = 0);
     procedure StretchDraw(DC: HDC; const Rect: TRect; AniStep: Integer = 0);
+  end;
+
+  TPixelFormat = (
+    pfDeviceDependent = 0,
+    pf1Bit = 1,
+    pf4Bit = 4,
+    pf8Bit = 8,
+    pf16Bit = 16,
+    pf24Bit = 24,
+    pf32Bit = 32,
+    pfCustom
+  );
+
+  TSdaBitmap = record
+  private
+    FHandle: HBITMAP;
+    function GetHeight: Integer;
+    function GetWidth: Integer;
+    function GetData: Pointer;
+    function GetPixelFormat: TPixelFormat;
+    function GetScanLine(Index: Integer): Pointer;
+    function GetStride: Integer;
+  public
+    property Handle: HBITMAP read FHandle write FHandle;
+    class operator Implicit(Value: HBITMAP): TSdaBitmap; inline;
+    procedure DestroyHandle; inline;
+
+    class function CreateHandle(Width, Height: Integer;
+      DC: HDC = 0): HBITMAP; overload; inline; static;
+    class function CreateHandle(Width, Height: Integer; const Palette: array of TColor;
+      PixelFormat: TPixelFormat = pf24Bit): HBITMAP; overload; static;
+
+    property Width: Integer read GetWidth;
+    property Height: Integer read GetHeight;
+    property PixelFormat: TPixelFormat read GetPixelFormat;
+
+    property Data: Pointer read GetData;
+    property ScanLine[Index: Integer]: Pointer read GetScanLine;
+
+    procedure Draw(DC: HDC; Left, Top: Integer);
+    procedure StretchDraw(DC: HDC; const Rect: TRect);
+
+    property Stride: Integer read GetStride;
   end;
 
 const
@@ -392,6 +440,22 @@ procedure TSdaCanvas.Chord(const Rect: TRect; const Start, Finish: TPoint);
 begin
   sdaWindows.Chord(FHandle, Rect.Left, Rect.Top, Rect.Right, Rect.Bottom,
     Start.X, Start.Y, Finish.X, Finish.Y);
+end;
+
+procedure TSdaCanvas.CopyRect(const Dest: TRect; DC: HDC; const Src: TRect);
+begin
+  StretchBlt(Handle, Dest.Left, Dest.Top, Dest.Right - Dest.Left, Dest.Bottom - Dest.Top,
+    DC, Src.Left, Src.Top, Src.Right - Src.Left, Src.Bottom - Src.Top, SRCCOPY);
+end;
+
+class function TSdaCanvas.CreateHandle(Bitmap: HBITMAP): HDC;
+begin
+  Result := CreateCompatibleDC(0);
+  if Result <> 0 then
+  begin
+    Bitmap := SelectObject(Result, Bitmap);
+    if Bitmap <> 0 then DeleteObject(Bitmap);
+  end;
 end;
 
 class function TSdaCanvas.CreateHandle(const Driver, Device: string;
@@ -681,6 +745,15 @@ begin
   SetPixel(FHandle, X, Y, ColorToRGB(Value));
 end;
 
+function TSdaCanvas.UnselectBitmap: HBITMAP;
+var
+  hbm: HBITMAP;
+begin
+  hbm := CreateCompatibleBitmap(0, 0, 0);
+  if hbm = 0 then Exit(0);
+  Result := SelectObject(Handle, hbm);
+end;
+
 { TSdaIcon }
 
 function TSdaIcon.CopyHandle: HICON;
@@ -812,6 +885,185 @@ begin
   ii.hbmMask := Mask;
   ii.hbmColor := Image;
   Result := CreateIconIndirect(ii);
+end;
+
+{ TSdaBitmap }
+
+class function TSdaBitmap.CreateHandle(Width, Height: Integer; DC: HDC): HBITMAP;
+var
+  h: HDC;
+begin
+  if DC = 0 then h := GetDC(0) else h := DC;
+  Result := CreateCompatibleBitmap(h, Width, Height);
+  if DC = 0 then ReleaseDC(0, h);
+end;
+
+class function TSdaBitmap.CreateHandle(Width, Height: Integer;
+  const Palette: array of TColor; PixelFormat: TPixelFormat): HBITMAP;
+var
+  p: Pointer;
+  bmp: PBITMAPINFO;
+  n: Integer;
+  pcl: ^COLORREF;
+  i: Integer;
+begin
+  if PixelFormat in [pfDeviceDependent, pfCustom] then Exit(0);
+  begin
+    n := SizeOf(BITMAPINFOHEADER) + (2 shl Integer(PixelFormat));
+    GetMem(bmp, n);
+    try
+      FillChar(bmp^, n, 0);
+      bmp.bmiHeader.biSize := SizeOf(bmp.bmiHeader);
+      bmp.bmiHeader.biWidth := Width;
+      bmp.bmiHeader.biHeight := Height;
+      bmp.bmiHeader.biPlanes := 1;
+      bmp.bmiHeader.biBitCount := Integer(PixelFormat);
+      bmp.bmiHeader.biCompression := BI_RGB;
+
+      pcl := @bmp.bmiColors[0];
+      n := 2 shl Integer(PixelFormat);
+      if n > Length(Palette) then n := Length(Palette);
+      for i := 0 to n - 1 do
+      begin
+        pcl^ := ColorToRGB(Palette[i]);
+        Inc(pcl);
+      end;
+
+      Result := CreateDIBSection(0, bmp^, DIB_RGB_COLORS, p, 0, 0);
+    finally
+      FreeMem(bmp);
+    end;
+  end;
+end;
+
+procedure TSdaBitmap.DestroyHandle;
+begin
+  DeleteObject(Handle);
+  FHandle := 0;
+end;
+
+function TSdaBitmap.GetData: Pointer;
+var
+  dib: DIBSECTION;
+begin
+  Result := nil;
+  if Handle = 0 then Exit;
+  FillChar(dib, SizeOf(dib), 0);
+  if GetObject(Handle, SizeOf(dib), @dib) <> 0 then
+    Result := dib.dsBm.bmBits;
+end;
+
+function TSdaBitmap.GetHeight: Integer;
+var
+  bmp: BITMAP;
+begin
+  Result := 0;
+  if Handle = 0 then Exit;
+  FillChar(bmp, SizeOf(bmp), 0);
+  if GetObject(Handle, SizeOf(bmp), @bmp) <> 0 then
+    Result := bmp.bmHeight;
+end;
+
+function TSdaBitmap.GetPixelFormat: TPixelFormat;
+var
+  bmp: BITMAP;
+begin
+  Result := pfDeviceDependent;
+  if Handle = 0 then Exit;
+  FillChar(bmp, SizeOf(bmp), 0);
+  if GetObject(Handle, SizeOf(bmp), @bmp) <> 0 then
+  begin
+    if bmp.bmBits = nil then Result := pfDeviceDependent else
+    if bmp.bmBitsPixel in [1, 4, 8, 16, 24, 32] then Result := TPixelFormat(bmp.bmBitsPixel)
+      else Result := pfCustom;
+  end;
+end;
+
+function TSdaBitmap.GetScanLine(Index: Integer): Pointer;
+var
+  dib: DIBSECTION;
+begin
+  Result := nil;
+  if Handle = 0 then Exit;
+  FillChar(dib, SizeOf(dib), 0);
+  if GetObject(Handle, SizeOf(dib), @dib) <> 0 then
+  begin
+    if (Index < 0) or (Index >= dib.dsBm.bmHeight) then Exit;
+    if dib.dsBm.bmBits <> nil then
+    begin
+      if not (dib.dsBm.bmBitsPixel in [1, 4, 8, 16, 24, 32]) then Exit;
+      Result := dib.dsBm.bmBits;
+      Inc(PByte(Result), dib.dsBm.bmWidthBytes);
+    end;
+  end;
+end;
+
+function TSdaBitmap.GetStride: Integer;
+var
+  bmp: BITMAP;
+begin
+  Result := 0;
+  if Handle = 0 then Exit;
+  FillChar(bmp, SizeOf(bmp), 0);
+  if GetObject(Handle, SizeOf(bmp), @bmp) <> 0 then
+    Result := bmp.bmWidthBytes;
+end;
+
+function TSdaBitmap.GetWidth: Integer;
+var
+  bmp: BITMAP;
+begin
+  Result := 0;
+  if Handle = 0 then Exit;
+  FillChar(bmp, SizeOf(bmp), 0);
+  if GetObject(Handle, SizeOf(bmp), @bmp) <> 0 then
+    Result := bmp.bmWidth;
+end;
+
+class operator TSdaBitmap.Implicit(Value: HBITMAP): TSdaBitmap;
+begin
+  Result.Handle := Value;
+end;
+
+procedure TSdaBitmap.Draw(DC: HDC; Left, Top: Integer);
+var
+  hc: HDC;
+  bmp: BITMAP;
+  hbm: HBITMAP;
+begin
+  if Handle = 0 then Exit;
+  FillChar(bmp, SizeOf(bmp), 0);
+  if GetObject(Handle, SizeOf(bmp), @bmp) <> 0 then
+  begin
+    hc := CreateCompatibleDC(0);
+    hbm := SelectObject(hc, Handle);
+
+    BitBlt(DC, Left, Top, bmp.bmWidth, bmp.bmHeight, hc, 0, 0, SRCCOPY);
+
+    SelectObject(hc, hbm);
+    DeleteDC(hc);
+  end;
+end;
+
+procedure TSdaBitmap.StretchDraw(DC: HDC; const Rect: TRect);
+var
+  hc: HDC;
+  bmp: BITMAP;
+  hbm: HBITMAP;
+begin
+  if Handle = 0 then Exit;
+  FillChar(bmp, SizeOf(bmp), 0);
+  if GetObject(Handle, SizeOf(bmp), @bmp) <> 0 then
+  begin
+    hc := CreateCompatibleDC(0);
+    hbm := SelectObject(hc, Handle);
+
+    StretchBlt(DC, Rect.Left, Rect.Top, Rect.Right - Rect.Left, Rect.Bottom - Rect.Top,
+      hc, 0, 0, bmp.bmWidth, bmp.bmHeight, SRCCOPY);
+
+    SelectObject(hc, hbm);
+    DeleteDC(hc);
+  end;
 end;
 
 end.

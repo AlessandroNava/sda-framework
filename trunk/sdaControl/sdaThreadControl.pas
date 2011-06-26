@@ -35,9 +35,13 @@ type
   private
     function GetHandle: THandle;
     function GetID: UINT;
+    function GetDesktop: HDESK;
+    procedure SetDesktop(const Value: HDESK);
   public
     property ID: UINT read GetID;
     property Handle: THandle read GetHandle;
+
+    property Desktop: HDESK read GetDesktop write SetDesktop;
   end;
 
 threadvar
@@ -111,6 +115,11 @@ end;
 
 { TSdaCurrentThread }
 
+function TSdaCurrentThread.GetDesktop: HDESK;
+begin
+  Result := GetThreadDesktop(GetCurrentThreadId);
+end;
+
 function TSdaCurrentThread.GetHandle: THandle;
 begin
   Result := GetCurrentThread;
@@ -119,6 +128,11 @@ end;
 function TSdaCurrentThread.GetID: UINT;
 begin
   Result := GetCurrentThreadId;
+end;
+
+procedure TSdaCurrentThread.SetDesktop(const Value: HDESK);
+begin
+  SetThreadDesktop(Value);
 end;
 
 end.
