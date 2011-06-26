@@ -1,4 +1,4 @@
-unit sdaProcess;
+unit sdaProcessControl;
 
 interface
 
@@ -22,6 +22,8 @@ type
     function GetMainThreadId: UINT;
     function GetDefaultLayout: TProcessDefaultLayout;
     procedure SetDefaultLayout(const Value: TProcessDefaultLayout);
+    function GetWindowStation: HWINSTA;
+    procedure SetWindowStation(const Value: HWINSTA);
   public
     property Handle: THandle read GetHandle;
     property Id: UINT read GetId;
@@ -36,6 +38,8 @@ type
 
     procedure EnablePrivilege(const Name: string);
     procedure DisablePrivilege(const Name: string);
+
+    property WindowStation: HWINSTA read GetWindowStation write SetWindowStation;
 
     procedure Exit(ExitCode: Integer = 0);
   end;
@@ -150,9 +154,19 @@ begin
   Result := ParamStr(Index);
 end;
 
+function TSdaCurrentProcess.GetWindowStation: HWINSTA;
+begin
+  Result := GetProcessWindowStation;
+end;
+
 procedure TSdaCurrentProcess.SetDefaultLayout(const Value: TProcessDefaultLayout);
 begin
   SetProcessDefaultLayout(DWORD(Value));
+end;
+
+procedure TSdaCurrentProcess.SetWindowStation(const Value: HWINSTA);
+begin
+  SetProcessWindowStation(Value);
 end;
 
 initialization

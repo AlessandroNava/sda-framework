@@ -71,13 +71,16 @@
 			<DCCReference Include="..\sdaUnits\sdaIniFile.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaInput.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaMessages.pas"/>
-			<DCCReference Include="..\sdaUnits\sdaProcess.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaScreen.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaSystem.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaSysUtils.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaWindows.pas"/>
 			<DCCReference Include="..\sdaControl\sdaStaticControl.pas"/>
 			<DCCReference Include="..\sdaControl\sdaAccelControl.pas"/>
+			<DCCReference Include="..\sdaUnits\sdaSyncObj.pas"/>
+			<DCCReference Include="..\sdaCreate\sdaThreadCreate.pas"/>
+			<DCCReference Include="..\sdaControl\sdaThreadControl.pas"/>
+			<DCCReference Include="..\sdaControl\sdaProcessControl.pas"/>
 			<None Include="sda.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>
