@@ -24,13 +24,16 @@ uses
   sdaIniFile in '..\sdaUnits\sdaIniFile.pas',
   sdaInput in '..\sdaUnits\sdaInput.pas',
   sdaMessages in '..\sdaUnits\sdaMessages.pas',
-  sdaProcess in '..\sdaUnits\sdaProcess.pas',
   sdaScreen in '..\sdaUnits\sdaScreen.pas',
   sdaSystem in '..\sdaUnits\sdaSystem.pas',
   sdaSysUtils in '..\sdaUnits\sdaSysUtils.pas',
   sdaWindows in '..\sdaUnits\sdaWindows.pas',
   sdaStaticControl in '..\sdaControl\sdaStaticControl.pas',
-  sdaAccelControl in '..\sdaControl\sdaAccelControl.pas';
+  sdaAccelControl in '..\sdaControl\sdaAccelControl.pas',
+  sdaSyncObj in '..\sdaUnits\sdaSyncObj.pas',
+  sdaThreadCreate in '..\sdaCreate\sdaThreadCreate.pas',
+  sdaThreadControl in '..\sdaControl\sdaThreadControl.pas',
+  sdaProcessControl in '..\sdaControl\sdaProcessControl.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;
