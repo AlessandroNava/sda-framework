@@ -2,6 +2,8 @@ unit sdaSyncObj;
 
 interface
 
+{$INCLUDE 'sda.inc'}
+
 uses
   sdaWindows;
 

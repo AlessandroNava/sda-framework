@@ -38,6 +38,7 @@ begin
   try
     try
       Obj.ExitCode := 0;
+      OutputDebugString(PChar(Obj.ClassName));
       Obj.Execute;
       Result := Obj.ExitCode;
     except
@@ -56,7 +57,7 @@ var
   Obj: TSdaThreadCreate;
 begin
   if not Assigned(ThreadClass) then Exit(0);
-  Obj := TSdaThreadClass.Create;
+  Obj := ThreadClass.Create;
   Result := CreateThread(nil, StackSize, @SdaThreadProc, Obj,
     Flags[CreateSuspended], Id^);
   if Result = 0 then Obj.Free;
