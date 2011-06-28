@@ -49,10 +49,16 @@ type
   protected
     function InitDialog(AFocusControl: HWND): Boolean; override;
     function CommandEvent(ItemID: Integer; EventCode: Integer): Boolean; override;
+    function AccelEvent(AccelID: Integer): Boolean; override;
     procedure BeforeDestroyHandle; override;
   end;
 
 { TAppDlg }
+
+function TAppDlg.AccelEvent(AccelID: Integer): Boolean;
+begin
+  Result := CommandEvent(AccelID, 0);
+end;
 
 procedure TAppDlg.BeforeDestroyHandle;
 begin

@@ -14,6 +14,7 @@ type
     FDialogMessageHandled: Boolean;
     procedure WMNCDestroy(var Message: TWMNCDestroy); message WM_NCDESTROY;
     procedure WMCommand(var Message: TWMCommand); message WM_COMMAND;
+    procedure WMMenuCommand(var Message: TWMMenuCommand); message WM_MENUCOMMAND;
     procedure WMSysCommand(var Message: TWMSysCommand); message WM_SYSCOMMAND;
     procedure WMInitDialog(var Message: TWMInitDialog); message WM_INITDIALOG;
   protected
@@ -21,6 +22,10 @@ type
     procedure DestroyHandle;
     function InitDialog(AFocusControl: HWND): Boolean; virtual;
     function  CommandEvent(ItemID: Integer; EventCode: Integer): Boolean; virtual;
+    function AccelEvent(AccelID: Integer): Boolean; virtual;
+    { If Menu = 0 then ItemIdOrPosition is ID of item; otherwise, it is position
+      of item in Menu menu }
+    function MenuEvent(ItemIdOrPosition: Integer; Menu: HMENU): Boolean; virtual;
     { Meaning of Param:
       EventCode                         Meaning
       ------------------------------------------------------
@@ -101,21 +106,6 @@ begin
   Result := TObject(GetWindowLongPtr(hWnd, GWL_SDAOBJ));
 end;
 
-function SdaCreateAssociatedObject(hWnd: HWND): TObject;
-var
-  sdaClass: TSdaDialogObjectClass;
-  cbCls: Integer;
-begin
-  if hWnd = 0 then Exit(nil);
-  cbCls := GetClassLongPtr(hWnd, GCL_CBCLSEXTRA);
-  if cbCls < SizeOf(Pointer) then Exit(nil);
-  Dec(cbCls, SizeOf(Pointer));
-  sdaClass := Pointer(GetClassLongPtr(hWnd, cbCls));
-  if not Assigned(sdaClass) then Exit(nil);
-  Result := sdaClass.Create;
-  SdaSetAssociatedObject(hWnd, Result);
-end;
-
 { При створенні вікна в WM_NCCREATE передається вказівник на структуру
   TSdaCreateWndContext, яка містить інформацію про прикріплений об'єкт, а
   також додаткові дані; при диспечеризації WM_NCCREATE треба використовувати
@@ -132,17 +122,11 @@ begin
   { Ініціалізуємо результат обробки повідомлення нулем
   }
   SetWindowLongPtr(hWnd, DWL_MSGRESULT, 0);
-  { Спеціальні повідомлення SDA завжди диспечеризуються напряму, і ніколи не потрапляють
-    в віконну процедуру. Якщо потрапило - це означає, що його відправили з іншого
-    потоку чи навіть програми; щоб попередити нестабільну роботу, просто ігноруємо
-    його. Вийнятки: SDAM_DESTROYWINDOW
-  }
   if uMsg = SDAM_DESTROYWINDOW then
   begin
     DestroyWindow(hWnd);
     Exit(true);
   end;
-  if uMsg >= SDAM_BASE then Exit(false);
   { Різниця між діалогом і звичайним вікном в тому, що першим повідомленням
     буде WM_INITDIALOG, і lParam - вказівником на TSdaCreateWndContext.
     Відповідно, при отриманні WM_INITDIALOG прикріпяємо об'єкт до вікна
@@ -310,28 +294,36 @@ begin
 end;
 
 procedure TSdaDialogObject.WMCommand(var Message: TWMCommand);
+var
+  Handled: Boolean;
 begin
   if (Message.NotifyCode = 0) and (Message.Ctl = 0) then
   begin
-    { Menu };
-    inherited;
+    { Menu }
+    Handled := MenuEvent(Message.ItemID, 0);
   end else
   if (Message.NotifyCode = 1) and (Message.Ctl = 0) then
   begin
-    { Accelerator, Message.Ctl = 0 };
-    inherited;
+    { Accelerator, Message.Ctl = 0 }
+    Handled := AccelEvent(Message.ItemID);
   end else
   begin
     { Control, Message.Ctl = Control identifier }
-    if CommandEvent(Message.ItemID, Message.NotifyCode) then Message.Result := 0
-      else Message.Result := -1;
+    Handled := CommandEvent(Message.ItemID, Message.NotifyCode);
   end;
+  if Handled then Message.Result := 0
+    else Message.Result := -1;
   DialogMessageHandled := Message.Result = 0;
 end;
 
 procedure TSdaDialogObject.WMInitDialog(var Message: TWMInitDialog);
 begin
   Message.Result := LRESULT(InitDialog(Message.Focus));
+end;
+
+procedure TSdaDialogObject.WMMenuCommand(var Message: TWMMenuCommand);
+begin
+  MenuEvent(Message.ItemPos, Message.Menu);
 end;
 
 procedure TSdaDialogObject.WMSysCommand(var Message: TWMSysCommand);
@@ -345,6 +337,11 @@ procedure TSdaDialogObject.DestroyHandle;
 begin
   if IsWindow(Handle) then
     PostMessage(Handle, SDAM_DESTROYWINDOW, 0, 0);
+end;
+
+function TSdaDialogObject.AccelEvent(AccelID: Integer): Boolean;
+begin
+  Result := false;
 end;
 
 procedure TSdaDialogObject.BeforeDestroyHandle;
@@ -370,6 +367,12 @@ end;
 function TSdaDialogObject.InitDialog(AFocusControl: HWND): Boolean;
 begin
   Result := true;
+end;
+
+function TSdaDialogObject.MenuEvent(ItemIdOrPosition: Integer;
+  Menu: HMENU): Boolean;
+begin
+  Result := false;
 end;
 
 procedure SdaRegisterDialogClass;

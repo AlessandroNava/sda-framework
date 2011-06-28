@@ -10,6 +10,14 @@ const
   SDAM_DESTROYWINDOW = SDAM_BASE + 1;
   SDAM_TRANSLATEACCEL = SDAM_BASE + 2; // lParam = @tagMSG, Result = FALSE/TRUE
 
+type
+  TSdamTranslateAccel = packed record
+    Msg: UINT;
+    Unused: WPARAM;
+    Message: PMsg;
+    Result: LRESULT;
+  end;
+
 implementation
 
 end.
