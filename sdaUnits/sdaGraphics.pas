@@ -12,10 +12,50 @@ type
   PColor = ^TColor;
 
   TFillStyle = (fsSurface, fsBorder);
-  TFillMode = (fmAlternate, fmWinding);
+  TPolyFillMode = (FillAlternate = ALTERNATE, FillWinding = WINDING);
   TArcDirection = (arcClockWise, arcCounterClockWise);
 
   TLineDDACallback = procedure(X, Y: Integer) of object;
+
+  TStretchingMode = (
+    StretchAndScans = STRETCH_ANDSCANS,
+    StretchOrScans = STRETCH_ORSCANS,
+    StretchDeleteScans = STRETCH_DELETESCANS,
+    StretchHalftone = STRETCH_HALFTONE
+  );
+
+  TGraphicsMode = (
+    GraphicsModeCompatible = GM_COMPATIBLE,
+    GraphicsModeAdvanced = GM_ADVANCED
+  );
+
+  TMappingMode = (
+    MapAnisotropic = MM_ANISOTROPIC,
+    MapIsotropic = MM_ISOTROPIC,
+    MapHiEnglish = MM_HIENGLISH,
+    MapHiMetric = MM_HIMETRIC,
+    MapLoEnglish = MM_LOENGLISH,
+    MapLoMetric = MM_LOMETRIC,
+    MapText = MM_TEXT,
+    MapTwips = MM_TWIPS
+  );
+
+  TTransform = record
+    DX, DY: Single;
+    M: array [0..1, 0..1] of Single;
+    class operator Add(const Left, Right: TTransform): TTransform; inline;
+  end;
+
+  TPixelFormat = (
+    pfDeviceDependent = 0,
+    pf1Bit = 1,
+    pf4Bit = 4,
+    pf8Bit = 8,
+    pf16Bit = 16,
+    pf24Bit = 24,
+    pf32Bit = 32,
+    pfCustom
+  );
 
 type
   TSdaCanvas = record
@@ -37,12 +77,20 @@ type
     procedure SetBrushColor(const Value: TColor);
     procedure SetMixMode(const Value: Integer);
     procedure SetPenColor(const Value: TColor);
-    function GetFillMode: TFillMode;
-    procedure SetFillMode(const Value: TFillMode);
+    function GetFillMode: TPolyFillMode;
+    procedure SetFillMode(const Value: TPolyFillMode);
     function GetPixels(X, Y: Integer): TColor;
     procedure SetPixels(X, Y: Integer; const Value: TColor);
     function GetArcDirection: TArcDirection;
     procedure SetArcDirection(const Value: TArcDirection);
+    function GetStretchingMode: TStretchingMode;
+    procedure SetStretchingMode(const Value: TStretchingMode);
+    function GetGraphicsMode: TGraphicsMode;
+    procedure SetGraphicsMode(const Value: TGraphicsMode);
+    function GetMappingMode: TMappingMode;
+    procedure SetMappingMode(const Value: TMappingMode);
+    function GetTransform: TTransform;
+    procedure SetTransform(const Value: TTransform);
   public
     property Handle: HDC read FHandle write FHandle;
 
@@ -61,13 +109,19 @@ type
     property Brush: HBRUSH read GetBrush write SetBrush;
     property Font: HFONT read GetFont write SetFont;
 
+    property StretchingMode: TStretchingMode read GetStretchingMode
+      write SetStretchingMode;
+    property GraphicsMode: TGraphicsMode read GetGraphicsMode write SetGraphicsMode;
+    property MappingMode: TMappingMode read GetMappingMode write SetMappingMode;
+    property Transform: TTransform read GetTransform write SetTransform;
+
     property Pixels[X, Y: Integer]: TColor read GetPixels write SetPixels;
     property BrushColor: TColor read GetBrushColor write SetBrushColor;
     property PenColor: TColor read GetPenColor write SetPenColor;
     property BackColor: TColor read GetBackColor write SetBackColor;
     property BackMode: Integer read GetBackMode write SetBackMode;
     property MixMode: Integer read GetMixMode write SetMixMode;
-    property FillMode: TFillMode read GetFillMode write SetFillMode;
+    property FillMode: TPolyFillMode read GetFillMode write SetFillMode;
     property ArcDirection: TArcDirection read GetArcDirection write SetArcDirection;
 
     procedure FloodFill(X, Y: Integer; Color: TColor;
@@ -130,11 +184,13 @@ type
       CreateCursor: Boolean; HotSpot: TPoint): HICON; overload; static;
     class function CreateHandle(Image, Mask: HBITMAP; CreateCursor: Boolean;
       HotSpot: TPoint): HICON; overload; static;
+    class function CreateHandle(const FileName: string; Width, Height: Integer;
+      LoadCursor: Boolean = false; Flags: DWORD = LR_DEFAULTCOLOR): HICON; overload; static;
     procedure DestroyHandle;
 
     class operator Implicit(Value: HICON): TSdaIcon;
 
-    function CopyHandle: HICON;
+    function Duplicate: HICON;
 
     property IsCursor: Boolean read GetIsCursor;
     property Width: Integer read GetWidth;
@@ -144,17 +200,6 @@ type
     procedure Draw(DC: HDC; Left, Top: Integer; AniStep: Integer = 0);
     procedure StretchDraw(DC: HDC; const Rect: TRect; AniStep: Integer = 0);
   end;
-
-  TPixelFormat = (
-    pfDeviceDependent = 0,
-    pf1Bit = 1,
-    pf4Bit = 4,
-    pf8Bit = 8,
-    pf16Bit = 16,
-    pf24Bit = 24,
-    pf32Bit = 32,
-    pfCustom
-  );
 
   TSdaBitmap = record
   private
@@ -174,6 +219,12 @@ type
       DC: HDC = 0): HBITMAP; overload; inline; static;
     class function CreateHandle(Width, Height: Integer; const Palette: array of TColor;
       PixelFormat: TPixelFormat = pf24Bit): HBITMAP; overload; static;
+    class function CreateHandle(Width, Height: Integer;
+      PixelFormat: TPixelFormat = pf24Bit): HBITMAP; overload; static;
+    class function CreateHandle(Instance: HMODULE; ResName: string;
+      Flags: DWORD = LR_DEFAULTCOLOR): HBITMAP; overload; static;
+    class function CreateHandle(const FileName: string;
+      Flags: DWORD = LR_DEFAULTCOLOR): HBITMAP; overload; static;
 
     property Width: Integer read GetWidth;
     property Height: Integer read GetHeight;
@@ -186,6 +237,34 @@ type
     procedure StretchDraw(DC: HDC; const Rect: TRect);
 
     property Stride: Integer read GetStride;
+  end;
+
+  TSdaRegion = record
+  private
+    FHandle: HRGN;
+    function GetBounds: TRect; inline;
+  public
+    property Handle: HRGN read FHandle write FHandle;
+    class operator Implicit(Value: HRGN): TSdaRegion; inline;
+    procedure DestroyHandle; inline;
+
+    class function CreateHandle(const Rect: TRect;
+      Elliptic: Boolean = false): HRGN; overload; inline; static;
+    class function CreateHandle(const Rect: TRect; EllipseWidth,
+      EllipseHeight: Integer): HRGN; overload; inline; static;
+    class function CreateHandle(const Points: array of TPoint;
+      FillMode: TPolyFillMode = FillWinding): HRGN; overload; static;
+    function Duplicate: HRGN; inline;
+
+    property Bounds: TRect read GetBounds;
+
+    class operator Equal(const Left, Right: TSdaRegion): Boolean; inline;
+    class operator NotEqual(const Left, Right: TSdaRegion): Boolean; inline;
+
+    class operator Subtract(const Left, Right: TSdaRegion): HRGN; inline;
+    class operator BitwiseAnd(const Left, Right: TSdaRegion): HRGN; inline;
+    class operator BitwiseOr(const Left, Right: TSdaRegion): HRGN; inline;
+    class operator BitwiseXor(const Left, Right: TSdaRegion): HRGN; inline;
   end;
 
 const
@@ -411,6 +490,28 @@ begin
     else Result := Color;
 end;
 
+{ TTransform }
+
+class operator TTransform.Add(const Left, Right: TTransform): TTransform;
+var
+  xLeft, xRight, xRes: XFORM;
+begin
+  FillChar(xLeft, SizeOf(xLeft), 0);
+  xLeft.eDx := Left.DX; xLeft.eDy := Left.DY;
+  xLeft.eM11 := Left.M[0, 0]; xLeft.eM12 := Left.M[0, 1];
+  xLeft.eM21 := Left.M[1, 0]; xLeft.eM22 := Left.M[1, 1];
+
+  FillChar(xRight, SizeOf(xRight), 0);
+  xRight.eDx := Right.DX; xRight.eDy := Right.DY;
+  xRight.eM11 := Right.M[0, 0]; xRight.eM12 := Right.M[0, 1];
+  xRight.eM21 := Right.M[1, 0]; xRight.eM22 := Right.M[1, 1];
+
+  CombineTransform(xRes, xLeft, xRight);
+  Result.DX := xRes.eDx; Result.DY := xRes.eDy;
+  Result.M[0, 0] := xRes.eM11; Result.M[0, 1] := xRes.eM12;
+  Result.M[1, 0] := xRes.eM21; Result.M[1, 1] := xRes.eM22;
+end;
+
 { TSdaCanvas }
 
 procedure TSdaCanvas.AngleArc(const Center: TPoint; Radius: Cardinal;
@@ -453,6 +554,8 @@ begin
   Result := CreateCompatibleDC(0);
   if Result <> 0 then
   begin
+    SetStretchBltMode(Result, HALFTONE);
+    sdaWindows.SetGraphicsMode(Result, GM_ADVANCED);
     Bitmap := SelectObject(Result, Bitmap);
     if Bitmap <> 0 then DeleteObject(Bitmap);
   end;
@@ -463,6 +566,11 @@ class function TSdaCanvas.CreateHandle(const Driver, Device: string;
 begin
   if AnsiSameText(Driver, 'DISPLAY') then DevMode := nil;
   Result := CreateDC(PChar(Driver), PChar(Device), nil, @DevMode);
+  if Result <> 0 then
+  begin
+    SetStretchBltMode(Result, HALFTONE);
+    sdaWindows.SetGraphicsMode(Result, GM_ADVANCED);
+  end;
 end;
 
 class function TSdaCanvas.CreateHandle(Window: HWND; NonClient: Boolean): HDC;
@@ -474,6 +582,11 @@ end;
 class function TSdaCanvas.CreateHandle(CompatibleTo: HDC): HDC;
 begin
   Result := CreateCompatibleDC(CompatibleTo);
+  if Result <> 0 then
+  begin
+    SetStretchBltMode(Result, HALFTONE);
+    sdaWindows.SetGraphicsMode(Result, GM_ADVANCED);
+  end;
 end;
 
 class function TSdaCanvas.CreateHandle(const Driver, Device: string;
@@ -482,6 +595,11 @@ begin
   if AnsiSameText(Driver, 'DISPLAY')
     then Result := CreateDC(PChar(Driver), PChar(Device), nil, nil)
     else Result := CreateDC(PChar(Driver), PChar(Device), nil, @DevMode);
+  if Result <> 0 then
+  begin
+    SetStretchBltMode(Result, HALFTONE);
+    sdaWindows.SetGraphicsMode(Result, GM_ADVANCED);
+  end;
 end;
 
 procedure TSdaCanvas.DestroyHandle;
@@ -550,15 +668,24 @@ begin
   Result := GetDCBrushColor(FHandle);
 end;
 
-function TSdaCanvas.GetFillMode: TFillMode;
+function TSdaCanvas.GetFillMode: TPolyFillMode;
 begin
-  if GetPolyFillMode(FHandle) = ALTERNATE then Result := fmAlternate
-    else Result := fmWinding;
+  Result := TPolyFillMode(GetPolyFillMode(FHandle));
 end;
 
 function TSdaCanvas.GetFont: HFONT;
 begin
   Result := GetCurrentObject(FHandle, OBJ_FONT);
+end;
+
+function TSdaCanvas.GetGraphicsMode: TGraphicsMode;
+begin
+  Result := TGraphicsMode(sdaWindows.GetGraphicsMode(Handle));
+end;
+
+function TSdaCanvas.GetMappingMode: TMappingMode;
+begin
+  Result := TMappingMode(GetMapMode(Handle));
 end;
 
 function TSdaCanvas.GetMixMode: Integer;
@@ -579,6 +706,22 @@ end;
 function TSdaCanvas.GetPixels(X, Y: Integer): TColor;
 begin
   Result := GetPixel(FHandle, X, Y);
+end;
+
+function TSdaCanvas.GetStretchingMode: TStretchingMode;
+begin
+  Result := TStretchingMode(GetStretchBltMode(Handle));
+end;
+
+function TSdaCanvas.GetTransform: TTransform;
+var
+  t: XFORM;
+begin
+  FillChar(t, SizeOf(t), 0);
+  GetWorldTransform(Handle, t);
+  Result.DX := t.eDx; Result.DY := t.eDy;
+  Result.M[0, 0] := t.eM11; Result.M[0, 1] := t.eM12;
+  Result.M[1, 0] := t.eM21; Result.M[1, 1] := t.eM22;
 end;
 
 class operator TSdaCanvas.Implicit(Value: HDC): TSdaCanvas;
@@ -708,10 +851,9 @@ begin
   SetDCBrushColor(FHandle, ColorToRGB(Value));
 end;
 
-procedure TSdaCanvas.SetFillMode(const Value: TFillMode);
+procedure TSdaCanvas.SetFillMode(const Value: TPolyFillMode);
 begin
-  if Value = fmAlternate then SetPolyFillMode(FHandle, ALTERNATE)
-    else SetPolyFillMode(FHandle, WINDING);
+  SetPolyFillMode(FHandle, Integer(Value));
 end;
 
 procedure TSdaCanvas.SetFont(const Value: HFONT);
@@ -720,6 +862,16 @@ var
 begin
   hf := SelectObject(FHandle, Value);
   if hf <> 0 then DeleteObject(hf);
+end;
+
+procedure TSdaCanvas.SetGraphicsMode(const Value: TGraphicsMode);
+begin
+  sdaWindows.SetGraphicsMode(Handle, Integer(Value));
+end;
+
+procedure TSdaCanvas.SetMappingMode(const Value: TMappingMode);
+begin
+  SetMapMode(Handle, Integer(Value));
 end;
 
 procedure TSdaCanvas.SetMixMode(const Value: Integer);
@@ -745,21 +897,33 @@ begin
   SetPixel(FHandle, X, Y, ColorToRGB(Value));
 end;
 
+procedure TSdaCanvas.SetStretchingMode(const Value: TStretchingMode);
+begin
+  SetStretchBltMode(Handle, Integer(Value));
+end;
+
+procedure TSdaCanvas.SetTransform(const Value: TTransform);
+var
+  t: XFORM;
+begin
+  FillChar(t, SizeOf(t), 0);
+  t.eDx := Value.DX; t.eDy := Value.DY;
+  t.eM11 := Value.M[0, 0]; t.eM12 := Value.M[0, 1];
+  t.eM21 := Value.M[1, 0]; t.eM22 := Value.M[1, 1];
+  sdaWindows.SetGraphicsMode(Handle, GM_ADVANCED);
+  SetWorldTransform(Handle, t);
+end;
+
 function TSdaCanvas.UnselectBitmap: HBITMAP;
 var
   hbm: HBITMAP;
 begin
-  hbm := CreateCompatibleBitmap(0, 0, 0);
+  hbm := CreateCompatibleBitmap(Handle, 0, 0);
   if hbm = 0 then Exit(0);
   Result := SelectObject(Handle, hbm);
 end;
 
 { TSdaIcon }
-
-function TSdaIcon.CopyHandle: HICON;
-begin
-  Result := CopyIcon(FHandle);
-end;
 
 class function TSdaIcon.CreateHandle(Instance: HMODULE; ResName: string; Width,
   Height: Integer; LoadCursor: Boolean; Flags: DWORD): HICON;
@@ -767,7 +931,8 @@ var
   dwType: DWORD;
 begin
   if LoadCursor then dwType := IMAGE_CURSOR else dwType := IMAGE_ICON;
-  Result := LoadImage(HInstance, PChar(ResName), dwType, Width, Height, Flags);
+  Result := LoadImage(HInstance, PChar(ResName), dwType, Width, Height,
+    Flags and not LR_LOADFROMFILE);
 end;
 
 class function TSdaIcon.CreateHandle(const Data; DataSize, Width,
@@ -778,11 +943,52 @@ begin
     Width, Height, Flags);
 end;
 
+class function TSdaIcon.CreateHandle(const Image, Mask; Width, Height,
+  ColorDepth: Integer; CreateCursor: Boolean; HotSpot: TPoint): HICON;
+begin
+  if CreateCursor then
+  begin
+    Result := sdaWindows.CreateCursor(HInstance, HotSpot.X, HotSpot.Y,
+      Width, Height, @Mask, @Image);
+  end else
+  begin
+    Result := CreateIcon(HInstance, Width, Height, 1, ColorDepth, @Mask, @Image);
+  end;
+end;
+
+class function TSdaIcon.CreateHandle(Image, Mask: HBITMAP; CreateCursor: Boolean;
+  HotSpot: TPoint): HICON;
+var
+  ii: ICONINFO;
+begin
+  ii.fIcon := not CreateCursor;
+  ii.xHotspot := HotSpot.X;
+  ii.yHotspot := HotSpot.Y;
+  ii.hbmMask := Mask;
+  ii.hbmColor := Image;
+  Result := CreateIconIndirect(ii);
+end;
+
+class function TSdaIcon.CreateHandle(const FileName: string; Width,
+  Height: Integer; LoadCursor: Boolean; Flags: DWORD): HICON;
+var
+  dwType: DWORD;
+begin
+  if LoadCursor then dwType := IMAGE_CURSOR else dwType := IMAGE_ICON;
+  Result := LoadImage(0, PChar(FileName), dwType, Width, Height,
+    LR_LOADFROMFILE or Flags);
+end;
+
 procedure TSdaIcon.DestroyHandle;
 begin
   if IsCursor then DestroyCursor(FHandle)
     else DestroyIcon(FHandle);
   FHandle := 0;
+end;
+
+function TSdaIcon.Duplicate: HICON;
+begin
+  Result := CopyIcon(FHandle);
 end;
 
 procedure TSdaIcon.Draw(DC: HDC; Left, Top: Integer; AniStep: Integer);
@@ -861,32 +1067,6 @@ begin
   Result.Handle := Value;
 end;
 
-class function TSdaIcon.CreateHandle(const Image, Mask; Width, Height,
-  ColorDepth: Integer; CreateCursor: Boolean; HotSpot: TPoint): HICON;
-begin
-  if CreateCursor then
-  begin
-    Result := sdaWindows.CreateCursor(HInstance, HotSpot.X, HotSpot.Y,
-      Width, Height, @Mask, @Image);
-  end else
-  begin
-    Result := CreateIcon(HInstance, Width, Height, 1, ColorDepth, @Mask, @Image);
-  end;
-end;
-
-class function TSdaIcon.CreateHandle(Image, Mask: HBITMAP; CreateCursor: Boolean;
-  HotSpot: TPoint): HICON;
-var
-  ii: ICONINFO;
-begin
-  ii.fIcon := not CreateCursor;
-  ii.xHotspot := HotSpot.X;
-  ii.yHotspot := HotSpot.Y;
-  ii.hbmMask := Mask;
-  ii.hbmColor := Image;
-  Result := CreateIconIndirect(ii);
-end;
-
 { TSdaBitmap }
 
 class function TSdaBitmap.CreateHandle(Width, Height: Integer; DC: HDC): HBITMAP;
@@ -934,6 +1114,26 @@ begin
       FreeMem(bmp);
     end;
   end;
+end;
+
+class function TSdaBitmap.CreateHandle(Width, Height: Integer;
+  PixelFormat: TPixelFormat): HBITMAP;
+begin
+  Result := CreateHandle(Width, Height, [], PixelFormat);
+end;
+
+class function TSdaBitmap.CreateHandle(Instance: HMODULE; ResName: string;
+  Flags: DWORD): HBITMAP;
+begin
+  Result := LoadImage(Instance, PChar(ResName), IMAGE_BITMAP, 0, 0,
+    Flags or LR_DEFAULTSIZE and not LR_LOADFROMFILE);
+end;
+
+class function TSdaBitmap.CreateHandle(const FileName: string;
+  Flags: DWORD): HBITMAP;
+begin
+  Result := LoadImage(0, PChar(FileName), IMAGE_BITMAP, 0, 0,
+    Flags or LR_DEFAULTSIZE or LR_LOADFROMFILE);
 end;
 
 procedure TSdaBitmap.DestroyHandle;
@@ -1064,6 +1264,83 @@ begin
     SelectObject(hc, hbm);
     DeleteDC(hc);
   end;
+end;
+
+{ TSdaRegion }
+
+class function TSdaRegion.CreateHandle(const Rect: TRect; Elliptic: Boolean): HRGN;
+begin
+  if Elliptic then Result := CreateEllipticRgnIndirect(Rect)
+    else Result := CreateRectRgnIndirect(Rect);
+end;
+
+class function TSdaRegion.CreateHandle(const Rect: TRect; EllipseWidth,
+  EllipseHeight: Integer): HRGN;
+begin
+  Result := CreateRoundRectRgn(Rect.Left, Rect.Top, Rect.Right, Rect.Bottom,
+    EllipseWidth, EllipseHeight);
+end;
+
+class operator TSdaRegion.BitwiseAnd(const Left, Right: TSdaRegion): HRGN;
+begin
+  Result := CreateRectRgn(0, 0, 0, 0);
+  CombineRgn(Result, Left.Handle, Right.Handle, RGN_AND);
+end;
+
+class operator TSdaRegion.BitwiseOr(const Left, Right: TSdaRegion): HRGN;
+begin
+  Result := CreateRectRgn(0, 0, 0, 0);
+  CombineRgn(Result, Left.Handle, Right.Handle, RGN_OR);
+end;
+
+class operator TSdaRegion.BitwiseXor(const Left, Right: TSdaRegion): HRGN;
+begin
+  Result := CreateRectRgn(0, 0, 0, 0);
+  CombineRgn(Result, Left.Handle, Right.Handle, RGN_XOR);
+end;
+
+class function TSdaRegion.CreateHandle(const Points: array of TPoint;
+  FillMode: TPolyFillMode): HRGN;
+begin
+  Result := CreatePolygonRgn(Points, Length(Points), Integer(FillMode));
+end;
+
+procedure TSdaRegion.DestroyHandle;
+begin
+  DeleteObject(Handle);
+  FHandle := 0;
+end;
+
+function TSdaRegion.Duplicate: HRGN;
+begin
+  Result := CreateRectRgn(0, 0, 0, 0);
+  CombineRgn(Result, Handle, 0, RGN_COPY);
+end;
+
+class operator TSdaRegion.Equal(const Left, Right: TSdaRegion): Boolean;
+begin
+  Result := EqualRgn(Left.Handle, Right.Handle);
+end;
+
+function TSdaRegion.GetBounds: TRect;
+begin
+  GetRgnBox(Handle, Result);
+end;
+
+class operator TSdaRegion.Implicit(Value: HRGN): TSdaRegion;
+begin
+  Result.Handle := Value;
+end;
+
+class operator TSdaRegion.NotEqual(const Left, Right: TSdaRegion): Boolean;
+begin
+  Result := not EqualRgn(Left.Handle, Right.Handle);
+end;
+
+class operator TSdaRegion.Subtract(const Left, Right: TSdaRegion): HRGN;
+begin
+  Result := CreateRectRgn(0, 0, 0, 0);
+  CombineRgn(Result, Left.Handle, Right.Handle, RGN_DIFF);
 end;
 
 end.
