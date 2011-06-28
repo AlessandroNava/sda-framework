@@ -21413,6 +21413,8 @@ const
 function GetProcessDefaultLayout(var pdwDefaultLayout: DWORD): BOOL; stdcall;
 function SetProcessDefaultLayout(dwDefaultLayout: DWORD): BOOL; stdcall;
 
+procedure MapWindowPoint(hwndFrom, hwndTo: HWND; var Point: TPoint);
+
 const
   advapi32  = 'advapi32.dll';
   kernel32  = 'kernel32.dll';
@@ -24949,6 +24951,11 @@ end;
 
 function GetProcessDefaultLayout; external user32 name 'GetProcessDefaultLayout';
 function SetProcessDefaultLayout; external user32 name 'SetProcessDefaultLayout';
+
+procedure MapWindowPoint(hwndFrom, hwndTo: HWND; var Point: TPoint);
+begin
+  MapWindowPoints(hwndFrom, hwndTo, Point, 1);
+end;
 
 initialization
   InitVersionInfo;

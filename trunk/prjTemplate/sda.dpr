@@ -46,7 +46,6 @@ type
   private
     FTray: TSdaNotifyIcon;
     FTip: TSdaToolTipControl;
-    FPB: TSdaProgressBarControl;
   protected
     function InitDialog(AFocusControl: HWND): Boolean; override;
     function CommandEvent(ItemID: Integer; EventCode: Integer): Boolean; override;
@@ -81,6 +80,7 @@ end;
 function TAppDlg.InitDialog(AFocusControl: HWND): Boolean;
 var
   c: TSdaWindowControl;
+  pb: TSdaProgressBarControl;
 begin
   c := Handle;
   c.Left := (Screen.Width - c.Width) div 2;
@@ -101,9 +101,9 @@ begin
   FTip.TitleIcon := TTI_INFO;
   FTip.AddTool(1, 'Press this button to display message in tray', c.ClientRect, TTF_SUBCLASS or TTF_CENTERTIP);
 
-  FPB.Handle := TSdaDialogControl(Handle).ItemHandle[IDCTL_PROGRESSBAR];
-  FPB.Style := PBS_MARQUEE;
-  FPB.EnableMarquee(40);
+  pb.Handle := TSdaDialogControl(Handle).ItemHandle[IDCTL_PROGRESSBAR];
+  pb.Style := PBS_MARQUEE;
+  pb.EnableMarquee(40);
 
   ShowWindow(Handle, SW_SHOW);
 end;
