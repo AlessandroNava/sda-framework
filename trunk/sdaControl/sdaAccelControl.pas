@@ -9,7 +9,7 @@ uses
 
 type
   TAccelEntry = record
-    Flags: set of (afAlt, afControl, afShift);
+    Modifiers: set of (AccelAlt, AccelControl, AccelShift);
     Command: Integer;
     case IsVirtual: Boolean of
     true:  ( VKey: Word; );
@@ -60,9 +60,9 @@ begin
     ent[i].cmd := Entries[i].Command;
     ent[i].key := Entries[i].VKey;
     ent[i].fVirt := 0;
-    if afShift   in Entries[i].Flags then ent[i].fVirt := ent[i].fVirt or FSHIFT;
-    if afControl in Entries[i].Flags then ent[i].fVirt := ent[i].fVirt or FCONTROL;
-    if afAlt     in Entries[i].Flags then ent[i].fVirt := ent[i].fVirt or FALT;
+    if AccelShift   in Entries[i].Modifiers then ent[i].fVirt := ent[i].fVirt or FSHIFT;
+    if AccelControl in Entries[i].Modifiers then ent[i].fVirt := ent[i].fVirt or FCONTROL;
+    if AccelAlt     in Entries[i].Modifiers then ent[i].fVirt := ent[i].fVirt or FALT;
     if Entries[i].IsVirtual then ent[i].fVirt := ent[i].fVirt or FVIRTKEY;
   end;
   Result := CreateHandle(ent);
@@ -120,10 +120,10 @@ begin
     Dest[i].Command := ent[i].cmd;
     Dest[i].VKey := ent[i].key;
     Dest[i].IsVirtual := ent[i].fVirt and FVIRTKEY = FVIRTKEY;
-    Dest[i].Flags := [];
-    if ent[i].fVirt and FSHIFT = FSHIFT then Include(Dest[i].Flags, afShift);
-    if ent[i].fVirt and FCONTROL = FCONTROL then Include(Dest[i].Flags, afControl);
-    if ent[i].fVirt and FALT = FALT then Include(Dest[i].Flags, afAlt);
+    Dest[i].Modifiers := [];
+    if ent[i].fVirt and FSHIFT = FSHIFT then Include(Dest[i].Modifiers, AccelShift);
+    if ent[i].fVirt and FCONTROL = FCONTROL then Include(Dest[i].Modifiers, AccelControl);
+    if ent[i].fVirt and FALT = FALT then Include(Dest[i].Modifiers, AccelAlt);
   end;
 end;
 

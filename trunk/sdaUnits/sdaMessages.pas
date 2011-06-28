@@ -492,6 +492,29 @@ const
   PSM_PAGEINFO = (WM_USER+100);
   PSM_SHEETINFO = (WM_USER+101);
 
+{ Property Sheet Messages }
+
+const
+  PSM_SETCURSEL           = WM_USER + 101;
+  PSM_REMOVEPAGE          = WM_USER + 102;
+  PSM_ADDPAGE             = WM_USER + 103;
+  PSM_CHANGED             = WM_USER + 104;
+  PSM_RESTARTWINDOWS      = WM_USER + 105;
+  PSM_REBOOTSYSTEM        = WM_USER + 106;
+  PSM_CANCELTOCLOSE       = WM_USER + 107;
+  PSM_QUERYSIBLINGS       = WM_USER + 108;
+  PSM_UNCHANGED           = WM_USER + 109;
+  PSM_APPLY               = WM_USER + 110;
+  PSM_SETTITLE            = WM_USER + 111;
+  PSM_SETTITLEW           = WM_USER + 120;
+  PSM_SETWIZBUTTONS       = WM_USER + 112;
+  PSM_PRESSBUTTON         = WM_USER + 113;
+  PSM_SETCURSELID         = WM_USER + 114;
+  PSM_SETFINISHTEXT       = WM_USER + 115;
+  PSM_SETFINISHTEXTW      = WM_USER + 121;
+  PSM_GETTABCONTROL       = WM_USER + 116;
+  PSM_ISDIALOGMESSAGE     = WM_USER + 117;
+
 type
 
 { Generic window message record }
@@ -1448,6 +1471,13 @@ type
     Unused: WPARAM;
     NotifyStruct: PGestureNotifyStruct;
     Result: Integer;
+  end;
+
+  TWMMenuCommand = packed record
+    Msg: UINT;
+    ItemPos: WPARAM;
+    Menu: HMENU;
+    Result: LRESULT; // Ignored
   end;
 
 implementation

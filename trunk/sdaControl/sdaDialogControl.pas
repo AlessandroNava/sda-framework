@@ -19,6 +19,7 @@ type
     procedure SetItemEnabled(ItemID: Integer; const Value: Boolean);
     procedure SetItemCaption(ItemID: Integer; const Value: string);
     procedure SetItemVisible(ItemID: Integer; const Value: Boolean);
+    function GetDialogUnits(const Index: Integer): Integer;
   public
     property Handle: HWND read FHandle write FHandle;
     procedure DestroyHandle;
@@ -41,6 +42,9 @@ type
     procedure FocusItem(ItemID: Integer);
     procedure NextControl;
     procedure PrevControl;
+
+    property DialogUnitsX: Integer index 0 read GetDialogUnits;
+    property DialogUnitsY: Integer index 1 read GetDialogUnits;
 
     procedure MapDialogRect(var Rect: TRect);
   end;
@@ -104,6 +108,17 @@ end;
 function TSdaDialogControl.GetItemID(WndChild: HWND): Integer;
 begin
   Result := GetDlgCtrlID(WndChild);
+end;
+
+function TSdaDialogControl.GetDialogUnits(const Index: Integer): Integer;
+var
+  rc: TRect;
+begin
+  rc.Left := 0; rc.Top := 0;
+  rc.Right := 1; rc.Bottom := 1;
+  sdaWindows.MapDialogRect(Handle, rc);
+  if Index = 0 then Result := rc.Right
+    else Result := rc.Bottom;
 end;
 
 function TSdaDialogControl.GetItemCaption(ItemID: Integer): string;

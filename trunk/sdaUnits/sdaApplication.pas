@@ -161,8 +161,21 @@ begin
 end;
 
 function TSdaApplication.TranslateAccelerator(var Message: TMsg): Boolean;
+var
+  h: HWND;
 begin
-  Result := BOOL(SendMessage(Message.hwnd, SDAM_TRANSLATEACCEL, 0, LPARAM(@Message)));
+  case Message.message of
+  WM_KEYDOWN, WM_SYSKEYDOWN, WM_KEYUP, WM_SYSKEYUP: begin
+      h := Message.hwnd;
+      repeat
+        Result := BOOL(SendMessage(h, SDAM_TRANSLATEACCEL, 0, LPARAM(@Message)));
+        if Result then Break;
+        if GetWindowLongPtr(h, GWL_STYLE) and WS_CHILD <> WS_CHILD then Break;
+        h := GetParent(h);
+      until h = 0;
+    end;
+    else Result := false;
+  end;
 end;
 
 function TSdaApplication.TryGetMessage(var Message: TMsg): Boolean;
@@ -191,8 +204,8 @@ procedure TSdaApplication.DefDispatchMessage(var Message: TMsg);
 var
   Unicode: Boolean;
 begin
-  if not IsDialogMessage(Message) then
-    if not TranslateAccelerator(Message) then
+  if not TranslateAccelerator(Message) then
+    if not IsDialogMessage(Message) then
     begin
       TranslateMessage(Message);
       Unicode := (Message.hwnd = 0) or IsWindowUnicode(Message.hwnd);
