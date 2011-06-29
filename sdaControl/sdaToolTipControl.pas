@@ -7,7 +7,7 @@ interface
 // http://msdn.microsoft.com/en-us/library/bb760246(VS.85).aspx
 
 uses
-  sdaWindows, sdaMessages, sdaCommCtrl, sdaGraphics;
+  sdaWindows, sdaMessages, sdaGraphics;
 
 const
   TOOLTIPS_CLASS = 'tooltips_class32';

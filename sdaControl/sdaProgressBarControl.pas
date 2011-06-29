@@ -5,7 +5,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, sdaMessages, sdaCommCtrl, sdaGraphics;
+  sdaWindows, sdaMessages, sdaGraphics;
 
 const
   PROGRESS_CLASS = 'msctls_progress32';

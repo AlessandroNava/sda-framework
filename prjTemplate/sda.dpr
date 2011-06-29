@@ -18,7 +18,6 @@ uses
   sdaActiveX in '..\sdaUnits\sdaActiveX.pas',
   sdaApplication in '..\sdaUnits\sdaApplication.pas',
   sdaClasses in '..\sdaUnits\sdaClasses.pas',
-  sdaCommCtrl in '..\sdaUnits\sdaCommCtrl.pas',
   sdaGraphics in '..\sdaUnits\sdaGraphics.pas',
   sdaHelpers in '..\sdaUnits\sdaHelpers.pas',
   sdaIniFile in '..\sdaUnits\sdaIniFile.pas',
@@ -49,16 +48,10 @@ type
   protected
     function InitDialog(AFocusControl: HWND): Boolean; override;
     function CommandEvent(ItemID: Integer; EventCode: Integer): Boolean; override;
-    function AccelEvent(AccelID: Integer): Boolean; override;
     procedure BeforeDestroyHandle; override;
   end;
 
 { TAppDlg }
-
-function TAppDlg.AccelEvent(AccelID: Integer): Boolean;
-begin
-  Result := CommandEvent(AccelID, 0);
-end;
 
 procedure TAppDlg.BeforeDestroyHandle;
 begin

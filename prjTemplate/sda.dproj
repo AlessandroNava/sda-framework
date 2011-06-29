@@ -65,7 +65,6 @@
 			<DCCReference Include="..\sdaUnits\sdaActiveX.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaApplication.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaClasses.pas"/>
-			<DCCReference Include="..\sdaUnits\sdaCommCtrl.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaGraphics.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaHelpers.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaIniFile.pas"/>

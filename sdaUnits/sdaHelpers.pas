@@ -166,7 +166,7 @@ type
 implementation
 
 uses
-  sdaSystem, sdaCommCtrl;
+  sdaSystem;
 
 { TSdaWindowPaintHelper }
 
