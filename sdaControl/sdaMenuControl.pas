@@ -29,8 +29,8 @@ type
     procedure SetBackground(const Value: HBRUSH);
   public
     property Handle: HMENU read FHandle write SetHandle;
-    procedure DestroyHandle;
-    class operator Implicit(Value: HMENU): TSdaMenuControl;
+    procedure DestroyHandle; inline;
+    class operator Implicit(Value: HMENU): TSdaMenuControl; inline;
 
     property ItemCaption[Index: Integer]: string read GetItemCaption
       write SetItemCaption;
@@ -66,21 +66,21 @@ type
     procedure SetHandle(const Value: HMENU);
   public
     property Handle: HMENU read FHandle write SetHandle;
-    procedure DestroyHandle;
+    procedure DestroyHandle; inline;
 
-    class operator Implicit(Value: HMENU): TSdaPopupMenuControl;
+    class operator Implicit(Value: HMENU): TSdaPopupMenuControl; inline;
 
-    class function CreateHandle: HMENU; overload; static;
+    class function CreateHandle: HMENU; overload; inline; static;
     class function CreateHandle(Instance: HMODULE; MenuName: string;
       SubItemIndex: Integer = 0): HMENU; overload; static;
     class function CreateHandle(Window: HWND;
-      ResetMenu: Boolean = false): HMENU; overload; static;
+      ResetMenu: Boolean = false): HMENU; overload; inline; static;
 
     function Popup(Window: HWND; X, Y: Integer;
-      Flags: DWORD = TPM_RETURNCMD or TPM_NONOTIFY): Integer; overload;
+      Flags: DWORD = TPM_RETURNCMD or TPM_NONOTIFY): Integer; overload; inline;
     function Popup(Window: HWND; P: TPoint;
-      Flags: DWORD = TPM_RETURNCMD or TPM_NONOTIFY): Integer; overload;
-    function Popup(Window: HWND; Flags: DWORD = TPM_RETURNCMD or TPM_NONOTIFY): Integer; overload;
+      Flags: DWORD = TPM_RETURNCMD or TPM_NONOTIFY): Integer; overload; inline;
+    function Popup(Window: HWND; Flags: DWORD = TPM_RETURNCMD or TPM_NONOTIFY): Integer; overload; inline;
 
     procedure CheckRadioItem(ItemToCheck, FirstInGroup, LastInGroup: Integer);
   end;
@@ -91,17 +91,17 @@ type
     procedure SetHandle(const Value: HMENU);
   public
     property Handle: HMENU read FHandle write SetHandle;
-    procedure DestroyHandle;
-    class operator Implicit(Value: HMENU): TSdaMainMenuControl;
-    class function CreateHandle: HMENU; overload; static;
+    procedure DestroyHandle; inline;
+    class operator Implicit(Value: HMENU): TSdaMainMenuControl;  inline;
+    class function CreateHandle: HMENU; overload; inline; static;
     class function CreateHandle(Instance: HMODULE;
-      MenuName: string): HMENU; overload; static;
-    class function CreateHandle(Window: HWND): HMENU; overload; static;
+      MenuName: string): HMENU; overload; inline; static;
+    class function CreateHandle(Window: HWND): HMENU; overload; inline; static;
 
-    class procedure DrawMenuBar(Window: HWND); static;
-    procedure Apply(Window: HWND);
+    class procedure DrawMenuBar(Window: HWND); inline; static;
+    procedure Apply(Window: HWND); inline;
 
-    procedure HiliteItem(Window: HWND; Index: Integer; Hilite: Boolean);
+    procedure HiliteItem(Window: HWND; Index: Integer; Hilite: Boolean); inline;
   end;
 
 implementation
@@ -138,8 +138,8 @@ end;
 
 procedure TSdaMenuControl.DestroyHandle;
 begin
-  DestroyMenu(FHandle);
-  FHandle := 0;
+  if DestroyMenu(FHandle) then
+    FHandle := 0;
 end;
 
 function TSdaMenuControl.GetBackground: HBRUSH;

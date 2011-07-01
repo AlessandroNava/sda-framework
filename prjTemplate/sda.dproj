@@ -80,6 +80,8 @@
 			<DCCReference Include="..\sdaCreate\sdaThreadCreate.pas"/>
 			<DCCReference Include="..\sdaControl\sdaThreadControl.pas"/>
 			<DCCReference Include="..\sdaControl\sdaProcessControl.pas"/>
+			<DCCReference Include="..\sdaUnits\sdaModule.pas"/>
+			<DCCReference Include="..\sdaControl\sdaHeapControl.pas"/>
 			<None Include="sda.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>

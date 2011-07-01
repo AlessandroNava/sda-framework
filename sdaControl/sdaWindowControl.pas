@@ -44,11 +44,12 @@ type
     property Handle: HWND read FHandle write FHandle;
     class function CreateHandle(const ClassName: string; Style: DWORD;
       ExStyle: DWORD; const Caption: string; Left, Top, Width, Height: Integer;
-      Parent: HWND = 0; Instance: HINST = 0; Menu: HMENU = 0; Param: Pointer = nil): HWND; static;
+      Parent: HWND = 0; Instance: HINST = 0; Menu: HMENU = 0;
+      Param: Pointer = nil): HWND; inline; static;
 
-    procedure DestroyHandle;
+    procedure DestroyHandle; inline;
 
-    class operator Implicit(Value: HWND): TSdaWindowControl;
+    class operator Implicit(Value: HWND): TSdaWindowControl; inline;
 
     property Style: DWORD read GetStyle write SetStyle;
     property ExStyle: DWORD read GetExStyle write SetExStyle;
@@ -104,8 +105,8 @@ end;
 
 procedure TSdaWindowControl.DestroyHandle;
 begin
-  DestroyWindow(Handle);
-  FHandle := 0;
+  if DestroyWindow(Handle) then
+    FHandle := 0;
 end;
 
 procedure TSdaWindowControl.Close;

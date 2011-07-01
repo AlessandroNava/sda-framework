@@ -121,64 +121,64 @@ type
   TSdaImageListControl = record
   private
     FHandle: HIMAGELIST;
-    function GetCount: Integer;
-    procedure SetCount(const Value: Integer);
-    function GetHeight: Integer;
-    function GetWidth: Integer;
-    function GetBackColor: TColor;
-    procedure SetBackColor(const Value: TColor);
-    procedure SetHeight(const Value: Integer);
-    procedure SetWidth(const Value: Integer);
-    function GetDragHotSpot: TPoint;
-    function GetDragImageList: HIMAGELIST;
-    function GetDragPosition: TPoint;
+    function GetCount: Integer; inline;
+    procedure SetCount(const Value: Integer); inline;
+    function GetHeight: Integer; inline;
+    function GetWidth: Integer; inline;
+    function GetBackColor: TColor; inline;
+    procedure SetBackColor(const Value: TColor); inline;
+    procedure SetHeight(const Value: Integer); inline;
+    procedure SetWidth(const Value: Integer); inline;
+    function GetDragHotSpot: TPoint; inline;
+    function GetDragImageList: HIMAGELIST; inline;
+    function GetDragPosition: TPoint; inline;
   public
     property Handle: HIMAGELIST read FHandle write FHandle;
     class function CreateHandle(Width, Height: Integer; ColorDepth: TImageListColorDepth;
-      Masked: Boolean = true; AllocBy: Integer = 4): HIMAGELIST; overload; static;
+      Masked: Boolean = true; AllocBy: Integer = 4): HIMAGELIST; overload; inline; static;
     class function CreateHandle(Instance: HMODULE; const BitmapName: string;
       Width: Integer; MaskColor: TColor; Flags: DWORD = LR_DEFAULTCOLOR;
-      AllocBy: Integer = 4): HIMAGELIST; overload; static;
-    procedure DestroyHandle;
+      AllocBy: Integer = 4): HIMAGELIST; overload; inline; static;
+    procedure DestroyHandle; inline;
 
-    class operator Implicit(Value: HIMAGELIST): TSdaImageListControl;
+    class operator Implicit(Value: HIMAGELIST): TSdaImageListControl; inline;
 
-    function Duplicate: HIMAGELIST;
-    procedure SetSize(Width, Height: Integer);
+    function Duplicate: HIMAGELIST; inline;
+    procedure SetSize(Width, Height: Integer); inline;
 
     property Count: Integer read GetCount write SetCount;
     property Width: Integer read GetWidth write SetWidth;
     property Height: Integer read GetHeight write SetHeight;
     property BackColor: TColor read GetBackColor write SetBackColor;
 
-    procedure Add(Image, Mask: HBITMAP); overload;
-    procedure Add(Image: HBITMAP; MaskColor: TColor); overload;
-    procedure Add(Icon: HICON); overload;
+    procedure Add(Image, Mask: HBITMAP); overload; inline;
+    procedure Add(Image: HBITMAP; MaskColor: TColor); overload; inline;
+    procedure Add(Icon: HICON); overload; inline;
     procedure Add(Instance: HMODULE; const IconName: string; Flags: DWORD); overload;
 
-    procedure Replace(Index: Integer; Image, Mask: HBITMAP); overload;
-    procedure Replace(Index: Integer; Icon: HICON); overload;
+    procedure Replace(Index: Integer; Image, Mask: HBITMAP); overload; inline;
+    procedure Replace(Index: Integer; Icon: HICON); overload; inline;
 
-    procedure Swap(Index1, Index2: Integer);
-    procedure Delete(Index: Integer);
-    procedure Clear;
+    procedure Swap(Index1, Index2: Integer); inline;
+    procedure Delete(Index: Integer); inline;
+    procedure Clear; inline;
 
-    function Extract(Index: Integer; DrawingStyle: TImageListDrawingStyle = ildsTransparent): HICON;
+    function Extract(Index: Integer; DrawingStyle: TImageListDrawingStyle = ildsTransparent): HICON; inline;
 
     procedure Draw(Index: Integer; DC: HDC; Left, Top: Integer;
       DrawingStyle: TImageListDrawingStyle = ildsTransparent;
       BlendColor: TColor = clNone; BackColor: TColor = clNone;
-      Overlay: Integer = 0; Width: Integer = 0; Height: Integer = 0);
+      Overlay: Integer = 0; Width: Integer = 0; Height: Integer = 0); inline;
 
-    procedure BeginDrag(Index: Integer; const HotSpot: TPoint); overload;
-    procedure BeginDrag(Index: Integer; HotSpotX, HotSpotY: Integer); overload;
-    procedure DragMove(const P: TPoint); overload;
-    procedure DragMove(X, Y: Integer); overload;
-    procedure DragEnter(Window: HWND; const P: TPoint); overload;
-    procedure DragEnter(Window: HWND; X, Y: Integer); overload;
-    procedure DragLeave(Window: HWND);
-    procedure DragShowImage(Show: Boolean);
-    procedure EndDrag;
+    procedure BeginDrag(Index: Integer; const HotSpot: TPoint); overload; inline;
+    procedure BeginDrag(Index: Integer; HotSpotX, HotSpotY: Integer); overload; inline;
+    procedure DragMove(const P: TPoint); overload; inline;
+    procedure DragMove(X, Y: Integer); overload; inline;
+    procedure DragEnter(Window: HWND; const P: TPoint); overload; inline;
+    procedure DragEnter(Window: HWND; X, Y: Integer); overload; inline;
+    procedure DragLeave(Window: HWND); inline;
+    procedure DragShowImage(Show: Boolean); inline;
+    procedure EndDrag; inline;
 
     property DragImageList: HIMAGELIST read GetDragImageList;
     property DragPosition: TPoint read GetDragPosition;
@@ -353,8 +353,8 @@ end;
 
 procedure TSdaImageListControl.DestroyHandle;
 begin
-  ImageList_Destroy(Handle);
-  FHandle := 0;
+  if ImageList_Destroy(Handle) then
+    FHandle := 0;
 end;
 
 procedure TSdaImageListControl.DragMove(const P: TPoint);

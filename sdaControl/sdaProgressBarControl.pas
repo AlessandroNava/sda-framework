@@ -52,28 +52,28 @@ type
   TSdaProgressBarControl = record
   private
     FHandle: HWND;
-    function GetMax: Integer;
-    function GetMin: Integer;
-    function GetPosition: Integer;
-    procedure SetMax(const Value: Integer);
-    procedure SetMin(const Value: Integer);
-    procedure SetPosition(const Value: Integer);
-    function GetBackColor: TColor;
-    function GetBarColor: TColor;
-    procedure SetBackColor(const Value: TColor);
-    procedure SetBarColor(const Value: TColor);
-    function GetStep: Integer;
-    procedure SetStep(const Value: Integer);
-    function GetStyle: DWORD;
+    function GetMax: Integer; inline;
+    function GetMin: Integer; inline;
+    function GetPosition: Integer; inline;
+    procedure SetMax(const Value: Integer); inline;
+    procedure SetMin(const Value: Integer); inline;
+    procedure SetPosition(const Value: Integer); inline;
+    function GetBackColor: TColor; inline;
+    function GetBarColor: TColor; inline;
+    procedure SetBackColor(const Value: TColor); inline;
+    procedure SetBarColor(const Value: TColor); inline;
+    function GetStep: Integer; inline;
+    procedure SetStep(const Value: Integer); inline;
+    function GetStyle: DWORD; inline;
     procedure SetStyle(const Value: DWORD);
   public
     property Handle: HWND read FHandle write FHandle;
     class function CreateHandle(Left, Top, Width, Height: Integer;
       Parent: HWND = 0; Style: DWORD = WS_CHILD or WS_VISIBLE;
-      ExStyle: DWORD = 0): HWND; static;
-    procedure DestroyHandle;
+      ExStyle: DWORD = 0): HWND; inline; static;
+    procedure DestroyHandle; inline;
 
-    class operator Implicit(Value: HWND): TSdaProgressBarControl;
+    class operator Implicit(Value: HWND): TSdaProgressBarControl; inline;
 
     property Min: Integer read GetMin write SetMin;
     property Max: Integer read GetMax write SetMax;
@@ -85,11 +85,11 @@ type
     property BarColor: TColor read GetBarColor write SetBarColor;
     property BackColor: TColor read GetBackColor write SetBackColor;
 
-    procedure Increment; overload;
-    procedure Increment(const Value: Integer); overload;
+    procedure Increment; overload; inline;
+    procedure Increment(const Value: Integer); overload; inline;
 
-    procedure EnableMarquee(const Interval: Integer = 0);
-    procedure DisableMarquee;
+    procedure EnableMarquee(const Interval: Integer = 0); inline;
+    procedure DisableMarquee; inline;
   end;
 
 implementation
@@ -105,8 +105,8 @@ end;
 
 procedure TSdaProgressBarControl.DestroyHandle;
 begin
-  DestroyWindow(Handle);
-  FHandle := 0;
+  if DestroyWindow(Handle) then
+    FHandle := 0;
 end;
 
 procedure TSdaProgressBarControl.DisableMarquee;
