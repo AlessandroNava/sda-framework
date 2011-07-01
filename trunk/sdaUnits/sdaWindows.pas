@@ -4537,6 +4537,16 @@ function GetModuleFileNameW(hModule: HINST; lpFilename: PWideChar; nSize: DWORD)
 function GetModuleHandle(lpModuleName: PWideChar): HMODULE; stdcall;
 function GetModuleHandleA(lpModuleName: PAnsiChar): HMODULE; stdcall;
 function GetModuleHandleW(lpModuleName: PWideChar): HMODULE; stdcall;
+
+const
+  GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS = $00000004;
+  GET_MODULE_HANDLE_EX_FLAG_PIN = $00000001;
+  GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = $00000002;
+
+function GetModuleHandleEx(dwFlags: DWORD; lpModuleName: LPCTSTR; var phModule: HMODULE): BOOL; stdcall;
+function GetModuleHandleExA(dwFlags: DWORD; lpModuleName: PAnsiChar; var phModule: HMODULE): BOOL; stdcall;
+function GetModuleHandleExW(dwFlags: DWORD; lpModuleName: PWideChar; var phModule: HMODULE): BOOL; stdcall;
+
 function CreateProcess(lpApplicationName: PWideChar; lpCommandLine: PWideChar;
   lpProcessAttributes, lpThreadAttributes: PSecurityAttributes;
   bInheritHandles: BOOL; dwCreationFlags: DWORD; lpEnvironment: Pointer;
@@ -4715,9 +4725,9 @@ function GetCurrentDirectoryW(nBufferLength: DWORD; lpBuffer: PWideChar): DWORD;
 function SetDllDirectory(lpPathName: PWideChar): BOOL; stdcall;
 function SetDllDirectoryA(lpPathName: PAnsiChar): BOOL; stdcall;
 function SetDllDirectoryW(lpPathName: PWideChar): BOOL; stdcall;
-function GetDllDirectory(nBufferLength: DWORD; lpBuffer: PWideChar): BOOL; stdcall;
-function GetDllDirectoryA(nBufferLength: DWORD; lpBuffer: PAnsiChar): BOOL; stdcall;
-function GetDllDirectoryW(nBufferLength: DWORD; lpBuffer: PWideChar): BOOL; stdcall;
+function GetDllDirectory(nBufferLength: DWORD; lpBuffer: PWideChar): DWORD; stdcall;
+function GetDllDirectoryA(nBufferLength: DWORD; lpBuffer: PAnsiChar): DWORD; stdcall;
+function GetDllDirectoryW(nBufferLength: DWORD; lpBuffer: PWideChar): DWORD; stdcall;
 function GetDiskFreeSpace(lpRootPathName: PWideChar;
   var lpSectorsPerCluster, lpBytesPerSector, lpNumberOfFreeClusters, lpTotalNumberOfClusters: DWORD): BOOL; stdcall;
 function GetDiskFreeSpaceA(lpRootPathName: PAnsiChar;
@@ -22904,6 +22914,9 @@ function GetModuleFileNameW; external kernel32 name 'GetModuleFileNameW';
 function GetModuleHandle; external kernel32 name 'GetModuleHandleW';
 function GetModuleHandleA; external kernel32 name 'GetModuleHandleA';
 function GetModuleHandleW; external kernel32 name 'GetModuleHandleW';
+function GetModuleHandleEx; external kernel32 name 'GetModuleHandleEx';
+function GetModuleHandleExA; external kernel32 name 'GetModuleHandleExA';
+function GetModuleHandleExW; external kernel32 name 'GetModuleHandleExW';
 function GetNamedPipeHandleState; external kernel32 name 'GetNamedPipeHandleStateW';
 function GetNamedPipeHandleStateA; external kernel32 name 'GetNamedPipeHandleStateA';
 function GetNamedPipeHandleStateW; external kernel32 name 'GetNamedPipeHandleStateW';

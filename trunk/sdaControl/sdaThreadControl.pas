@@ -18,7 +18,7 @@ type
   public
     property Handle: THandle read FHandle write FHandle;
     property ID: UINT read GetID write SetID;
-    procedure DestroyHandle;
+    procedure DestroyHandle; inline;
 
     property ExitCode: DWORD read GetExitCode;
     property Terminated: Boolean read GetTerminated;
@@ -53,8 +53,8 @@ implementation
 
 procedure TSdaThreadControl.DestroyHandle;
 begin
-  CloseHandle(Handle);
-  FHandle := 0;
+  if CloseHandle(Handle) then
+    FHandle := 0;
 end;
 
 function TSdaThreadControl.GetExitCode: DWORD;

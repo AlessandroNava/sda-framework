@@ -24,6 +24,9 @@ type
     procedure SetDefaultLayout(const Value: TProcessDefaultLayout);
     function GetWindowStation: HWINSTA;
     procedure SetWindowStation(const Value: HWINSTA);
+    function GetDllDirectory: string;
+    procedure SetDllDirectory(const Value: string);
+    function GetHeap: THandle;
   public
     property Handle: THandle read GetHandle;
     property Id: UINT read GetId;
@@ -35,6 +38,9 @@ type
     property MainThreadId: UINT read GetMainThreadId;
     property DefaultLayout: TProcessDefaultLayout read GetDefaultLayout
       write SetDefaultLayout;
+
+    property DllDirectory: string read GetDllDirectory write SetDllDirectory;
+    property Heap: THandle read GetHeap;
 
     procedure EnablePrivilege(const Name: string);
     procedure DisablePrivilege(const Name: string);
@@ -119,6 +125,17 @@ begin
   Result := TProcessDefaultLayout(dw);
 end;
 
+function TSdaCurrentProcess.GetDllDirectory: string;
+var
+  n: Integer;
+begin
+  SetLength(Result, MAX_PATH);
+  n := sdaWindows.GetDllDirectory(Length(Result), PChar(Result));
+  SetLength(Result, n + 1);
+  n := sdaWindows.GetDllDirectory(Length(Result), PChar(Result));
+  SetLength(Result, n);
+end;
+
 function TSdaCurrentProcess.GetExeName: string;
 begin
   Result := ParamStr(0);
@@ -127,6 +144,11 @@ end;
 function TSdaCurrentProcess.GetHandle: THandle;
 begin
   Result := GetCurrentProcess;
+end;
+
+function TSdaCurrentProcess.GetHeap: THandle;
+begin
+  Result := GetProcessHeap;
 end;
 
 function TSdaCurrentProcess.GetID: UINT;
@@ -162,6 +184,11 @@ end;
 procedure TSdaCurrentProcess.SetDefaultLayout(const Value: TProcessDefaultLayout);
 begin
   SetProcessDefaultLayout(DWORD(Value));
+end;
+
+procedure TSdaCurrentProcess.SetDllDirectory(const Value: string);
+begin
+  sdaWindows.SetDllDirectory(PChar(Value));
 end;
 
 procedure TSdaCurrentProcess.SetWindowStation(const Value: HWINSTA);

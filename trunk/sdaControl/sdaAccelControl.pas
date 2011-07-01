@@ -19,14 +19,14 @@ type
   TSdaAccelControl = record
   private
     FHandle: HACCEL;
-    function GetCount: Integer;
+    function GetCount: Integer; inline;
   public
     property Handle: HACCEL read FHandle write FHandle;
-    class operator Implicit(Value: HACCEL): TSdaAccelControl;
-    class function CreateHandle(Instance: HINST; const ResName: string): HACCEL; overload; static;
+    class operator Implicit(Value: HACCEL): TSdaAccelControl; inline;
+    class function CreateHandle(Instance: HINST; const ResName: string): HACCEL; overload; inline; static;
     class function CreateHandle(const Entries: array of TAccelEntry): HACCEL; overload; static;
     class function CreateHandle(Entries: array of ACCEL): HACCEL; overload; static;
-    procedure DestroyHandle;
+    procedure DestroyHandle; inline;
 
     function Duplicate: HACCEL;
 
@@ -76,8 +76,8 @@ end;
 
 procedure TSdaAccelControl.DestroyHandle;
 begin
-  DestroyAcceleratorTable(Handle);
-  FHandle := 0;
+  if DestroyAcceleratorTable(Handle) then
+    FHandle := 0;
 end;
 
 function TSdaAccelControl.Duplicate: HACCEL;

@@ -22,9 +22,9 @@ type
     function GetDialogUnits(const Index: Integer): Integer;
   public
     property Handle: HWND read FHandle write FHandle;
-    procedure DestroyHandle;
+    procedure DestroyHandle; inline;
 
-    class operator Implicit(Value: HWND): TSdaDialogControl;
+    class operator Implicit(Value: HWND): TSdaDialogControl; inline;
 
     property ItemHandle[ItemID: Integer]: HWND read GetItemHandle;
     property ItemID[WndChild: HWND]: Integer read GetItemID;
@@ -55,8 +55,8 @@ implementation
 
 procedure TSdaDialogControl.DestroyHandle;
 begin
-  DestroyWindow(Handle);
-  FHandle := 0;
+  if DestroyWindow(Handle) then
+    FHandle := 0;
 end;
 
 procedure TSdaDialogControl.ChangeItemID(hwndItem: HWND; NewID: Integer);

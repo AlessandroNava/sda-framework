@@ -263,10 +263,10 @@ type
     function GetStyle: DWORD;
     procedure SetStyle(const Value: DWORD);
   public
-    class function CreateHandle(Style: DWORD): HWND; static;
-    procedure DestroyHandle;
+    class function CreateHandle(Style: DWORD): HWND; inline; static;
+    procedure DestroyHandle; inline;
 
-    class operator Implicit(Value: HWND): TSdaToolTipControl;
+    class operator Implicit(Value: HWND): TSdaToolTipControl; inline;
 
     property Handle: HWND read FHandle write FHandle;
     property Window: HWND read FWindow write FWindow;
@@ -348,8 +348,8 @@ end;
 
 procedure TSdaToolTipControl.DestroyHandle;
 begin
-  DestroyWindow(Handle);
-  FHandle := 0;
+  if DestroyWindow(Handle) then
+    FHandle := 0;
 end;
 
 class function TSdaToolTipControl.CreateHandle(Style: DWORD): HWND;

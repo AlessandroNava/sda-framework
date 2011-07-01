@@ -32,7 +32,9 @@ uses
   sdaSyncObj in '..\sdaUnits\sdaSyncObj.pas',
   sdaThreadCreate in '..\sdaCreate\sdaThreadCreate.pas',
   sdaThreadControl in '..\sdaControl\sdaThreadControl.pas',
-  sdaProcessControl in '..\sdaControl\sdaProcessControl.pas';
+  sdaProcessControl in '..\sdaControl\sdaProcessControl.pas',
+  sdaModule in '..\sdaUnits\sdaModule.pas',
+  sdaHeapControl in '..\sdaControl\sdaHeapControl.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;

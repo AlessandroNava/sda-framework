@@ -125,30 +125,30 @@ type
   TSdaButtonControl = record
   private
     FHandle: HWND;
-    function GetStyle: DWORD;
-    procedure SetStyle(const Value: DWORD);
-    function GetBitmap: HBITMAP;
-    function GetIcon: HICON;
-    procedure SetBitmap(const Value: HBITMAP);
-    procedure SetIcon(const Value: HICON);
-    function GetState: TCheckState;
-    procedure SetState(const Value: TCheckState);
-    function GetTextMargins: TRect;
-    procedure SetTextMargins(const Value: TRect);
-    function GetButtonState: TButtonState;
-    function GetImageAlign: TImageAlign;
-    function GetImageList: HIMAGELIST;
-    function GetImageMargins: TRect;
-    procedure SetImageAlign(const Value: TImageAlign);
-    procedure SetImageList(const Value: HIMAGELIST);
-    procedure SetImageMargins(const Value: TRect);
+    function GetStyle: DWORD; inline;
+    procedure SetStyle(const Value: DWORD); inline;
+    function GetBitmap: HBITMAP; inline;
+    function GetIcon: HICON; inline;
+    procedure SetBitmap(const Value: HBITMAP); inline;
+    procedure SetIcon(const Value: HICON); inline;
+    function GetState: TCheckState; inline;
+    procedure SetState(const Value: TCheckState); inline;
+    function GetTextMargins: TRect; inline;
+    procedure SetTextMargins(const Value: TRect); inline;
+    function GetButtonState: TButtonState; inline;
+    function GetImageAlign: TImageAlign; inline;
+    function GetImageList: HIMAGELIST; inline;
+    function GetImageMargins: TRect; inline;
+    procedure SetImageAlign(const Value: TImageAlign); inline;
+    procedure SetImageList(const Value: HIMAGELIST); inline;
+    procedure SetImageMargins(const Value: TRect); inline;
   public
     class function CreateHandle(Left, Top, Width, Height: Integer;
       const Caption: string; Parent: HWND = 0;
-      Style: DWORD = WS_CHILD or BS_PUSHBUTTON): HWND; static;
-    procedure DestroyHandle;
+      Style: DWORD = WS_CHILD or BS_PUSHBUTTON): HWND; inline; static;
+    procedure DestroyHandle; inline;
 
-    class operator Implicit(Value: HWND): TSdaButtonControl;
+    class operator Implicit(Value: HWND): TSdaButtonControl; inline;
 
     property Handle: HWND read FHandle write FHandle;
     property Style: DWORD read GetStyle write SetStyle;
@@ -172,9 +172,9 @@ type
     property TextMargins: TRect read GetTextMargins write SetTextMargins;
     property ButtonState: TButtonState read GetButtonState;
 
-    procedure Click;
-    function GetIdealSize: TSize;
-    procedure Highlight(Highlight: Boolean = true);
+    procedure Click; inline;
+    function GetIdealSize: TSize; inline;
+    procedure Highlight(Highlight: Boolean = true); inline;
   end;
 
 implementation
@@ -195,8 +195,8 @@ end;
 
 procedure TSdaButtonControl.DestroyHandle;
 begin
-  DestroyWindow(FHandle);
-  FHandle := 0;
+  if DestroyWindow(FHandle) then
+    FHandle := 0;
 end;
 
 function TSdaButtonControl.GetBitmap: HBITMAP;

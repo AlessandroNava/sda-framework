@@ -61,22 +61,22 @@ type
   TSdaStaticControl = record
   private
     FHandle: HWND;
-    function GetBitmap: HBITMAP;
-    function GetIcon: HICON;
-    function GetMetafile: HENHMETAFILE;
-    procedure SetBitmap(const Value: HBITMAP);
-    procedure SetIcon(const Value: HICON);
-    procedure SetMetafile(const Value: HENHMETAFILE);
+    function GetBitmap: HBITMAP; inline;
+    function GetIcon: HICON; inline;
+    function GetMetafile: HENHMETAFILE; inline;
+    procedure SetBitmap(const Value: HBITMAP); inline;
+    procedure SetIcon(const Value: HICON); inline;
+    procedure SetMetafile(const Value: HENHMETAFILE); inline;
     function GetText: string;
-    procedure SetText(const Value: string);
-    function GetStyle: DWORD;
+    procedure SetText(const Value: string); inline;
+    function GetStyle: DWORD; inline;
     procedure SetStyle(const Value: DWORD);
   public
     property Handle: HWND read FHandle write FHandle;
     class operator Implicit(Value: HWND): TSdaStaticControl;
     class function CreateHandle(Style: DWORD; Left, Top, Width, Height: Integer;
-      Parent: HWND = 0; const Caption: string = ''): HWND; static;
-    procedure DestroyHandle;
+      Parent: HWND = 0; const Caption: string = ''): HWND; inline; static;
+    procedure DestroyHandle; inline;
 
     property Icon: HICON read GetIcon write SetIcon;
     property Bitmap: HBITMAP read GetBitmap write SetBitmap;
@@ -102,8 +102,8 @@ end;
 
 procedure TSdaStaticControl.DestroyHandle;
 begin
-  DestroyWindow(Handle);
-  FHandle := 0;
+  if DestroyWindow(Handle) then
+    FHandle := 0;
 end;
 
 function TSdaStaticControl.GetBitmap: HBITMAP;
