@@ -20,6 +20,8 @@ type
     procedure SetItemCaption(ItemID: Integer; const Value: string);
     procedure SetItemVisible(ItemID: Integer; const Value: Boolean);
     function GetDialogUnits(const Index: Integer): Integer;
+    function GetDefaultItem: Integer;
+    procedure SetDefaultItem(const Value: Integer);
   public
     property Handle: HWND read FHandle write FHandle;
     procedure DestroyHandle; inline;
@@ -43,10 +45,13 @@ type
     procedure NextControl;
     procedure PrevControl;
 
+    property DefaultItem: Integer read GetDefaultItem write SetDefaultItem;
+
     property DialogUnitsX: Integer index 0 read GetDialogUnits;
     property DialogUnitsY: Integer index 1 read GetDialogUnits;
 
     procedure MapDialogRect(var Rect: TRect);
+    procedure Reposition;
   end;
 
 implementation
@@ -85,7 +90,7 @@ begin
   begin
     wnd := ItemHandle[ItemID];
     if wnd <> 0 then
-      SendMessage(Handle, WM_NEXTDLGCTL, wnd, 1);
+      PostMessage(Handle, WM_NEXTDLGCTL, wnd, 1);
   end;
 end;
 
@@ -108,6 +113,11 @@ end;
 function TSdaDialogControl.GetItemID(WndChild: HWND): Integer;
 begin
   Result := GetDlgCtrlID(WndChild);
+end;
+
+function TSdaDialogControl.GetDefaultItem: Integer;
+begin
+  Result := LoWord(SendMessage(Handle, DM_GETDEFID, 0, 0));
 end;
 
 function TSdaDialogControl.GetDialogUnits(const Index: Integer): Integer;
@@ -156,12 +166,17 @@ end;
 
 procedure TSdaDialogControl.NextControl;
 begin
-  SendMessage(Handle, WM_NEXTDLGCTL, 0, 0);
+  PostMessage(Handle, WM_NEXTDLGCTL, 0, 0);
 end;
 
 procedure TSdaDialogControl.PrevControl;
 begin
-  SendMessage(Handle, WM_NEXTDLGCTL, 1, 0);
+  PostMessage(Handle, WM_NEXTDLGCTL, 1, 0);
+end;
+
+procedure TSdaDialogControl.Reposition;
+begin
+  SendMessage(Handle, DM_REPOSITION, 0, 0);
 end;
 
 procedure TSdaDialogControl.SetItemEnabled(ItemID: Integer;
@@ -175,6 +190,11 @@ begin
     if wnd = GetFocus then NextControl;
     EnableWindow(wnd, Value);
   end;
+end;
+
+procedure TSdaDialogControl.SetDefaultItem(const Value: Integer);
+begin
+  SendMessage(Handle, DM_SETDEFID, Value, 0);
 end;
 
 procedure TSdaDialogControl.SetItemCaption(ItemID: Integer; const Value: string);

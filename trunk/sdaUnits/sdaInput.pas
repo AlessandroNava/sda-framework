@@ -19,6 +19,8 @@ type
     procedure SetCursorPos(const Value: TPoint);
     function GetDoubleClickTime: Integer;
     procedure SetDoubleClickTime(const Value: Integer);
+    function GetButtonsSwapped: Boolean;
+    procedure SetButtonsSwapped(const Value: Boolean);
   public
     property MousePresent: Boolean read GetMousePresent;
     property WheelPresent: Boolean read GetWheelPresent;
@@ -28,7 +30,8 @@ type
     property DoubleClickTime: Integer read GetDoubleClickTime
       write SetDoubleClickTime;
 
-    procedure SwapButtons(Swap: Boolean);
+    property ButtonsSwapped: Boolean read GetButtonsSwapped write SetButtonsSwapped;
+
     procedure TrackEvent(Window: HWND; Flags: DWORD; HoverTime: DWORD = HOVER_DEFAULT);
   end;
 
@@ -92,9 +95,19 @@ end;
 
 { TMouse }
 
+function TSdaMouse.GetButtonsSwapped: Boolean;
+begin
+  Result := GetSystemMetrics(SM_SWAPBUTTON) <> 0;
+end;
+
 function TSdaMouse.GetCapture: HWND;
 begin
   Result := sdaWindows.GetCapture;
+end;
+
+procedure TSdaMouse.SetButtonsSwapped(const Value: Boolean);
+begin
+  SwapMouseButton(Value);
 end;
 
 procedure TSdaMouse.SetCapture(const Value: HWND);
@@ -125,11 +138,6 @@ end;
 procedure TSdaMouse.SetDoubleClickTime(const Value: Integer);
 begin
   sdaWindows.SetDoubleClickTime(Value);
-end;
-
-procedure TSdaMouse.SwapButtons(Swap: Boolean);
-begin
-  SwapMouseButton(Swap);
 end;
 
 procedure TSdaMouse.TrackEvent(Window: HWND; Flags, HoverTime: DWORD);
