@@ -28,6 +28,8 @@ type
     procedure Unlock; inline;
 
     function Validate(Ptr: Pointer = nil): Boolean; inline;
+
+    procedure Compact;
   end;
 
 implementation
@@ -37,6 +39,11 @@ implementation
 function TSdaHeapControl.Alloc(Size: Integer): Pointer;
 begin
   Result := HeapAlloc(Handle, HEAP_ZERO_MEMORY, Size);
+end;
+
+procedure TSdaHeapControl.Compact;
+begin
+  HeapCompact(Handle, 0);
 end;
 
 class function TSdaHeapControl.CreateHandle(EnableExecute: Boolean;
