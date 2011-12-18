@@ -89,7 +89,7 @@ var
 implementation
 
 uses
-  SdaSysUtils;
+  sdaSysUtils;
 
 const
   // Constants used for balloon hint feature

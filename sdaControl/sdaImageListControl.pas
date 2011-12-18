@@ -98,24 +98,24 @@ type
 
 type
   TImageListColorDepth = (
-    ilcdDefault = ILC_COLOR,
-    ilcdDeviceDependent = ILC_COLORDDB,
-    ilcdColor4Bit = ILC_COLOR4,
-    ilcdColor8Bit = ILC_COLOR8,
-    ilcdColor16Bit = ILC_COLOR16,
-    ilcdColor24Bit = ILC_COLOR24,
-    ilcdColor32Bit = ILC_COLOR32
+    ImageListColorDepthDefault = ILC_COLOR,
+    ImageListColorDepthDeviceDependent = ILC_COLORDDB,
+    ImageListColorDepth4Bit = ILC_COLOR4,
+    ImageListColorDepth8Bit = ILC_COLOR8,
+    ImageListColorDepth16Bit = ILC_COLOR16,
+    ImageListColorDepth24Bit = ILC_COLOR24,
+    ImageListColorDepth32Bit = ILC_COLOR32
   );
 
   TImageListDrawingStyle = (
-    ildsBlend25 = ILD_BLEND25,
-    ildsFocus = ILD_FOCUS,
-    ildsBlend50 = ILD_BLEND50,
-    ildsSelected = ILD_SELECTED,
-    ildsBlend = ILD_BLEND,
-    ildsMask = ILD_MASK,
-    ildsNormal = ILD_NORMAL,
-    ildsTransparent = ILD_TRANSPARENT
+    ImageListDrawingStyleBlend25 = ILD_BLEND25,
+    ImageListDrawingStyleFocus = ILD_FOCUS,
+    ImageListDrawingStyleBlend50 = ILD_BLEND50,
+    ImageListDrawingStyleSelected = ILD_SELECTED,
+    ImageListDrawingStyleBlend = ILD_BLEND,
+    ImageListDrawingStyleMask = ILD_MASK,
+    ImageListDrawingStyleNormal = ILD_NORMAL,
+    ImageListDrawingStyleTransparent = ILD_TRANSPARENT
   );
 
   TSdaImageListControl = record
@@ -155,6 +155,7 @@ type
     procedure Add(Image: HBITMAP; MaskColor: TColor); overload; inline;
     procedure Add(Icon: HICON); overload; inline;
     procedure Add(Instance: HMODULE; const IconName: string; Flags: DWORD); overload;
+    procedure Add(Instance: HMODULE; const IconID: Integer; Flags: DWORD); overload;
 
     procedure Replace(Index: Integer; Image, Mask: HBITMAP); overload; inline;
     procedure Replace(Index: Integer; Icon: HICON); overload; inline;
@@ -163,10 +164,11 @@ type
     procedure Delete(Index: Integer); inline;
     procedure Clear; inline;
 
-    function Extract(Index: Integer; DrawingStyle: TImageListDrawingStyle = ildsTransparent): HICON; inline;
+    function Extract(Index: Integer; DrawingStyle: TImageListDrawingStyle =
+      ImageListDrawingStyleTransparent): HICON; inline;
 
     procedure Draw(Index: Integer; DC: HDC; Left, Top: Integer;
-      DrawingStyle: TImageListDrawingStyle = ildsTransparent;
+      DrawingStyle: TImageListDrawingStyle = ImageListDrawingStyleTransparent;
       BlendColor: TColor = clNone; BackColor: TColor = clNone;
       Overlay: Integer = 0; Width: Integer = 0; Height: Integer = 0); inline;
 
@@ -321,6 +323,21 @@ var
 begin
   ImageList_GetIconSize(Handle, w, h);
   icon := LoadImage(Instance, PChar(IconName), IMAGE_ICON, w, h, Flags);
+  if icon <> 0 then
+  begin
+    ImageList_ReplaceIcon(Handle, -1, icon);
+    DestroyIcon(icon);
+  end;
+end;
+
+procedure TSdaImageListControl.Add(Instance: HMODULE; const IconID: Integer;
+  Flags: DWORD);
+var
+  icon: HICON;
+  w, h: Integer;
+begin
+  ImageList_GetIconSize(Handle, w, h);
+  icon := LoadImage(Instance, PChar(IconID), IMAGE_ICON, w, h, Flags);
   if icon <> 0 then
   begin
     ImageList_ReplaceIcon(Handle, -1, icon);

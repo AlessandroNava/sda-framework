@@ -34,7 +34,9 @@ uses
   sdaThreadControl in '..\sdaControl\sdaThreadControl.pas',
   sdaProcessControl in '..\sdaControl\sdaProcessControl.pas',
   sdaModule in '..\sdaUnits\sdaModule.pas',
-  sdaHeapControl in '..\sdaControl\sdaHeapControl.pas';
+  sdaHeapControl in '..\sdaControl\sdaHeapControl.pas',
+  sdaWinSock in '..\sdaUnits\sdaWinSock.pas',
+  sdaSocketControl in '..\sdaControl\sdaSocketControl.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;
