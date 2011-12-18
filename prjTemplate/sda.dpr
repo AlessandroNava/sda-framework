@@ -36,7 +36,8 @@ uses
   sdaModule in '..\sdaUnits\sdaModule.pas',
   sdaHeapControl in '..\sdaControl\sdaHeapControl.pas',
   sdaWinSock in '..\sdaUnits\sdaWinSock.pas',
-  sdaSocketControl in '..\sdaControl\sdaSocketControl.pas';
+  sdaSocketControl in '..\sdaControl\sdaSocketControl.pas',
+  sdaEditControl in '..\sdaControl\sdaEditControl.pas';
 
 const
   IDCTL_LABEL_HINT    = 101;
@@ -49,6 +50,7 @@ type
   private
     FTray: TSdaNotifyIcon;
     FTip: TSdaToolTipControl;
+    FEdit: TSdaEditControl;
   protected
     function InitDialog(AFocusControl: HWND): Boolean; override;
     function CommandEvent(ItemID: Integer; EventCode: Integer): Boolean; override;
@@ -72,7 +74,8 @@ begin
   end else
   if ItemID = IDPAUSE then
   begin
-    FTray.ShowBalloonHint('Hello', 'Hello, World!', BalloonInfo, 10);
+    SdaShowMessage(FEdit.SelText);
+//    FTray.ShowBalloonHint('Hello', 'Hello, World!', BalloonInfo, 10);
     Result := true;
   end else
   begin
@@ -106,7 +109,12 @@ begin
 
   pb.Handle := TSdaDialogControl(Handle).ItemHandle[IDCTL_PROGRESSBAR];
   pb.Style := PBS_MARQUEE;
-  pb.EnableMarquee(40);
+//  pb.EnableMarquee(40);
+
+  FEdit := TSdaEditControl.CreateHandle(WS_CHILD or WS_VISIBLE or ES_MULTILINE or
+    ES_WANTRETURN or ES_AUTOVSCROLL or ES_NOHIDESEL, Handle, 'Hello');
+  TSdaWindowControl(FEdit.Handle).SetBounds(10, 10, 200, 100);
+  FEdit.VerticalScroll := true;
 
   ShowWindow(Handle, SW_SHOW);
 end;

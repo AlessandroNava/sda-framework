@@ -7,7 +7,7 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaWindows, sdaMessages, CommCtrl;
+  sdaWindows, sdaMessages;
 
 const
   TOOLBARCLASSNAME = 'ToolbarWindow32';

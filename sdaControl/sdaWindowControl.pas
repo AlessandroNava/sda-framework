@@ -40,6 +40,8 @@ type
     procedure SetVisible(const Value: Boolean);
     function GetParent: HWND;
     procedure SetParent(const Value: HWND);
+    function GetFocused: Boolean;
+    procedure SetFocused(const Value: Boolean);
   public
     property Handle: HWND read FHandle write FHandle;
     class function CreateHandle(const ClassName: string; Style: DWORD;
@@ -63,6 +65,8 @@ type
     property Height: Integer read GetHeight write SetHeight;
     property ClientWidth: Integer read GetClientWidth write SetClientWidth;
     property ClientHeight: Integer read GetClientHeight write SetClientHeight;
+
+    property Focused: Boolean read GetFocused write SetFocused;
 
     property BoundsRect: TRect read GetBoundsRect write SetBoundsRect;
     property ClientRect: TRect read GetClientRect write SetClientRect;
@@ -174,6 +178,11 @@ end;
 function TSdaWindowControl.GetExStyle: DWORD;
 begin
   Result := GetWindowLongPtr(FHandle, GWL_EXSTYLE);
+end;
+
+function TSdaWindowControl.GetFocused: Boolean;
+begin
+  Result := GetFocus = Handle;
 end;
 
 function TSdaWindowControl.GetLeft: Integer;
@@ -385,6 +394,11 @@ begin
   SetWindowLongPtr(FHandle, GWL_EXSTYLE, Value);
   SetWindowPos(Handle, 0, 0, 0, 0, 0, SWP_FRAMECHANGED or SWP_NOSIZE or
     SWP_NOMOVE or SWP_NOZORDER);
+end;
+
+procedure TSdaWindowControl.SetFocused(const Value: Boolean);
+begin
+  SetFocus(Handle);
 end;
 
 procedure TSdaWindowControl.SetStyle(const Value: DWORD);
