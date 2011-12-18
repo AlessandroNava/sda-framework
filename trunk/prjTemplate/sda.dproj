@@ -84,6 +84,7 @@
 			<DCCReference Include="..\sdaControl\sdaHeapControl.pas"/>
 			<DCCReference Include="..\sdaUnits\sdaWinSock.pas"/>
 			<DCCReference Include="..\sdaControl\sdaSocketControl.pas"/>
+			<DCCReference Include="..\sdaControl\sdaEditControl.pas"/>
 			<None Include="sda.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>
