@@ -96,6 +96,8 @@ type
     class function CreateHandle: HMENU; overload; inline; static;
     class function CreateHandle(Instance: HMODULE;
       MenuName: string): HMENU; overload; inline; static;
+    class function CreateHandle(Instance: HMODULE;
+      MenuID: Integer): HMENU; overload; inline; static;
     class function CreateHandle(Window: HWND): HMENU; overload; inline; static;
 
     class procedure DrawMenuBar(Window: HWND); inline; static;
@@ -426,6 +428,12 @@ end;
 class function TSdaMainMenuControl.CreateHandle(Window: HWND): HMENU;
 begin
   Result := GetMenu(Window);
+end;
+
+class function TSdaMainMenuControl.CreateHandle(Instance: HMODULE;
+  MenuID: Integer): HMENU;
+begin
+  Result := LoadMenu(Instance, PChar(MenuID));
 end;
 
 procedure TSdaMainMenuControl.DestroyHandle;

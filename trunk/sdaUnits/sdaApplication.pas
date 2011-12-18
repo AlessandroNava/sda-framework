@@ -51,8 +51,9 @@ type
 
 function SdaMessageDlg(const Text, Caption: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; const IconResName: string = '';
-  IconModule: HINST = 0; HelpId: Integer = 0): Integer;
-procedure SdaShowMessage(const Message: string; const Caption: string = 'SDA Framework');
+  Owner: HWND = 0; IconModule: HINST = 0; HelpId: Integer = 0): Integer;
+procedure SdaShowMessage(const Message: string; const Caption: string = 'SDA Framework';
+  Owner: HWND = 0);
 
 threadvar
   Application: TSdaApplication;
@@ -67,7 +68,7 @@ uses
 
 function SdaMessageDlg(const Text, Caption: string; DlgType: TMsgDlgType;
   Buttons: TMsgDlgButtons; const IconResName: string;
-  IconModule: HINST; HelpId: Integer): Integer;
+  Owner: HWND; IconModule: HINST; HelpId: Integer): Integer;
 const
   MsgTypes: array [TMsgDlgType] of UINT = (MB_ICONWARNING, MB_ICONERROR,
     MB_ICONINFORMATION, MB_ICONQUESTION, MB_USERICON);
@@ -81,6 +82,7 @@ begin
   MsgPrms.lpszText := PChar(Text);
   MsgPrms.lpszCaption := PChar(Caption);
   MsgPrms.dwLanguageId := MAKELANGID(LANG_NEUTRAL, SUBLANG_NEUTRAL);
+  MsgPrms.hwndOwner := Owner;
   if IconResName <> '' then
   begin
     MsgPrms.lpszIcon := PChar(IconResName);
@@ -92,9 +94,9 @@ begin
   Result := Integer(MessageBoxIndirect(MsgPrms));
 end;
 
-procedure SdaShowMessage(const Message: string; const Caption: string);
+procedure SdaShowMessage(const Message: string; const Caption: string; Owner: HWND);
 begin
-  MessageBox(0, PChar(Message), PChar(Caption), MB_OK or MB_TASKMODAL);
+  MessageBox(Owner, PChar(Message), PChar(Caption), MB_OK or MB_TASKMODAL);
 end;
 
 procedure SdaApplicationInitialize(ApplicationClass: TSdaApplicationClass);
