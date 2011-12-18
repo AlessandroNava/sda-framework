@@ -13,19 +13,35 @@ type
   PDouble = System.PDouble;
   PByte = System.PByte;
 
-  PPoint = ^TPoint;
+  TSmallPoint = record
+    x: SmallInt;
+    y: SmallInt;
+  end;
+  PSmallPoint = ^TSmallPoint;
+
   TPoint = record
     X: Longint;
     Y: Longint;
+    class operator Implicit(const Value: TSmallPoint): TPoint; overload; inline;
+    class operator Implicit(const Value: TPoint): TSmallPoint; overload; inline;
   end;
+  PPoint = ^TPoint;
   tagPOINT = TPoint;
 
-  PRect = ^TRect;
   TRect = record
+  private
+    function GetHeight: Integer; inline;
+    function GetWidth: Integer; inline;
+    procedure SetHeight(const Value: Integer); inline;
+    procedure SetWidth(const Value: Integer); inline;
+  public
+    property Width: Integer read GetWidth write SetWidth;
+    property Height: Integer read GetHeight write SetHeight;
     case Integer of
       0: (Left, Top, Right, Bottom: Longint);
       1: (TopLeft, BottomRight: TPoint);
   end;
+  PRect = ^TRect;
 
   PSize = ^TSize;
   tagSIZE = record
@@ -34,12 +50,6 @@ type
   end;
   TSize = tagSIZE;
   SIZE = tagSIZE;
-
-  PSmallPoint = ^TSmallPoint;
-  TSmallPoint = record
-    x: SmallInt;
-    y: SmallInt;
-  end;
 
   DWORD = LongWord;
 
@@ -126,12 +136,12 @@ type
   PHandle = ^THandle;
 
   // From BaseTsd.h
-  INT_PTR = Integer;
-  LONG_PTR = Longint;
-  UINT_PTR = Cardinal;
-  ULONG_PTR = LongWord;
-  DWORD_PTR = ULONG_PTR;
-  HANDLE_PTR = type LongWord;
+  INT_PTR    = NativeInt;  //Integer;
+  LONG_PTR   = NativeInt;  //Longint;
+  UINT_PTR   = NativeUInt; //Cardinal;
+  ULONG_PTR  = NativeUInt; //LongWord;
+  DWORD_PTR  = NativeUInt; //ULONG_PTR;
+  HANDLE_PTR = NativeUInt; //type LongWord;
 
   Int8 = ShortInt;
   Int16 = SmallInt;
@@ -19887,7 +19897,6 @@ type
   TCoord = _COORD;
   COORD = _COORD;
 
-  PSmallRect = ^TSmallRect;
   _SMALL_RECT = packed record
     Left: SHORT;
     Top: SHORT;
@@ -19895,6 +19904,7 @@ type
     Bottom: SHORT;
   end;
   TSmallRect = _SMALL_RECT;
+  PSmallRect = ^TSmallRect;
   SMALL_RECT = _SMALL_RECT;
 
   PKeyEventRecord = ^TKeyEventRecord;
@@ -19984,7 +19994,8 @@ type
       3: (MenuEvent: TMenuEventRecord);
       4: (FocusEvent: TFocusEventRecord);
     end;
-  end;
+
+end;
   TInputRecord = _INPUT_RECORD;
   INPUT_RECORD = _INPUT_RECORD;
 
@@ -22136,6 +22147,8 @@ const
   NFS_LISTCOMBO               = $0004;
   NFS_BUTTON                  = $0008;
   NFS_ALL                     = $0010;
+
+function GetConsoleWindow: HWND; stdcall;
 
 const
   advapi32  = 'advapi32.dll';
@@ -25731,6 +25744,44 @@ function LoadIconWithScaleDown; external comctl32 name 'LoadIconWithScaleDown';
 
 function DrawShadowText; external comctl32 name 'DrawShadowText';
 procedure DrawScrollArrow; external comctl32 name 'DrawScrollArrow';
+
+function GetConsoleWindow; external kernel32 name 'GetConsoleWindow';
+
+{ TRect }
+
+function TRect.GetHeight: Integer;
+begin
+  Result := Bottom - Top;
+end;
+
+function TRect.GetWidth: Integer;
+begin
+  Result := Right - Left;
+end;
+
+procedure TRect.SetHeight(const Value: Integer);
+begin
+  Bottom := Top + Value;
+end;
+
+procedure TRect.SetWidth(const Value: Integer);
+begin
+  Right := Left + Value;
+end;
+
+{ TPoint }
+
+class operator TPoint.Implicit(const Value: TSmallPoint): TPoint;
+begin
+  Result.X := Value.x;
+  Result.Y := Value.y;
+end;
+
+class operator TPoint.Implicit(const Value: TPoint): TSmallPoint;
+begin
+  Result.x := Value.X;
+  Result.y := Value.Y;
+end;
 
 initialization
   InitVersionInfo;

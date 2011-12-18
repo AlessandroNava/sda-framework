@@ -83,27 +83,14 @@ type
   end;
   PSdaCreateWndContext = ^TSdaCreateWndContext;
 
-{ При реєстрації вікна до WNDCLASSEX.cbWndExtra додається SizeOf(Pointer) для
-  зберігання посилання на прикріплений об'єкт; для діалогів при ініціалізації
-  бібліотеки виводиться підклас, для якого поле WNDCLASSEX.cbWndExtra також
-  збільшене на SizeOf(Pointer)
-}
-function SdaSetAssociatedObject(hWnd: HWND; const Obj: TObject): TObject;
-var
-  GWL_SDAOBJ: Integer;
+function SdaSetAssociatedObject(hWnd: HWND; const Obj: TObject): TObject; inline;
 begin
-  GWL_SDAOBJ := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
-  if GWL_SDAOBJ < 0 then Exit(nil);
-  Result := TObject(SetWindowLongPtr(hWnd, GWL_SDAOBJ, NativeInt(Obj)));
+  Result := TObject(SetWindowLongPtr(hWnd, DWL_USER, NativeInt(Obj)));
 end;
 
-function SdaGetAssociatedObject(hWnd: HWND): TObject;
-var
-  GWL_SDAOBJ: Integer;
+function SdaGetAssociatedObject(hWnd: HWND): TObject; inline;
 begin
-  GWL_SDAOBJ := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
-  if GWL_SDAOBJ < 0 then Exit(nil);
-  Result := TObject(GetWindowLongPtr(hWnd, GWL_SDAOBJ));
+  Result := TObject(GetWindowLongPtr(hWnd, DWL_USER));
 end;
 
 { При створенні вікна в WM_NCCREATE передається вказівник на структуру
@@ -129,8 +116,8 @@ begin
   end;
   { Різниця між діалогом і звичайним вікном в тому, що першим повідомленням
     буде WM_INITDIALOG, і lParam - вказівником на TSdaCreateWndContext.
-    Відповідно, при отриманні WM_INITDIALOG прикріпяємо об'єкт до вікна
-    і відправляємо спочатку SDAM_SETWNDHANDLE, а потім і WM_INITDIALOG,
+    Відповідно, при отриманні WM_INITDIALOG прикріпяємо об'єкт до вікна,
+    встановлюємо значення Handle, а потім відправляємо WM_INITDIALOG,
     попередньо замінивши значення lParam
   }
   if uMsg = WM_INITDIALOG then
@@ -375,23 +362,4 @@ begin
   Result := false;
 end;
 
-procedure SdaRegisterDialogClass;
-var
-  WndClass: TWndClassEx;
-begin
-  FillChar(WndClass, SizeOf(WndClass), 0);
-  WndClass.cbSize := SizeOf(WndClass);
-  if GetClassInfoEx(HInstance, WC_DIALOG, WndClass) then
-  begin
-    if WndClass.cbWndExtra = DLGWINDOWEXTRA then
-    begin
-      WndClass.cbWndExtra := WndClass.cbWndExtra + SizeOf(Pointer);
-      WndClass.lpszClassName := 'Sda.Dialog';
-      RegisterClassEx(WndClass);
-    end;
-  end;
-end;
-
-initialization
-  SdaRegisterDialogClass;
 end.

@@ -18,6 +18,22 @@ type
     Result: LRESULT;
   end;
 
+procedure SdaSetLastError(Error: HRESULT);
+function SdaGetLastError: HRESULT;
+
 implementation
+
+threadvar
+  FSdaLastError: HRESULT;
+
+procedure SdaSetLastError(Error: HRESULT);
+begin
+  FSdaLastError := Error;
+end;
+
+function SdaGetLastError: HRESULT;
+begin
+  Result := FSdaLastError;
+end;
 
 end.

@@ -105,9 +105,16 @@ type
     function CopyFrom(Source: TSdaStream; Count: Int64): Int64;
     property Position: Int64 read GetPosition write SetPosition;
     property Size: Int64 read GetSize write SetSize;
+
+    procedure WriteString(const Str: RawByteString);
+    function ReadString: RawByteString;
   end;
 
 implementation
+
+resourcestring
+  sCannotWriteString = 'Cannot write string to stream';
+  sCannotReadString = 'Cannot read string from stream';
 
 { TSdaStringList }
 
@@ -387,6 +394,19 @@ begin
   end
 end;
 
+function TSdaStream.ReadString: RawByteString;
+var
+  len: Integer;
+begin
+  Result := '';
+  if Read(len, SizeOf(len)) <> SizeOf(len) then
+    raise EReadError.Create(sCannotReadString);
+  if len <= 0 then Exit;
+    SetLength(Result, len);
+  len := Read(Result[1], Length(Result));
+  SetLength(Result, len);
+end;
+
 function TSdaStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   Result := 0;
@@ -403,6 +423,18 @@ end;
 
 procedure TSdaStream.WriteBuffer(const Buffer; Count: Integer);
 begin
+end;
+
+procedure TSdaStream.WriteString(const Str: RawByteString);
+var
+  len: Integer;
+begin
+  len := Length(Str);
+  if Write(len, SizeOf(len)) <> SizeOf(len) then
+    raise EWriteError.Create(sCannotWriteString);
+  if len <= 0 then Exit;
+  if Write(Str[1], len) <> len then
+    raise EWriteError.Create(sCannotWriteString);
 end;
 
 function TSdaStream.CopyFrom(Source: TSdaStream; Count: Int64): Int64;

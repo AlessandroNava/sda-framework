@@ -163,6 +163,21 @@ type
     procedure DefaultHandler(var Message); override;
   end;
 
+  TSdaUpdateResourceHelper = record
+  private
+    FHandle: THandle;
+  public
+    property Handle: THandle read FHandle;
+    procedure BeginUpdate(const FileName: string; RemoveAllResources: Boolean = false); inline;
+
+    procedure Update(const ResName: string; ResType: PChar; const Data;
+      DataSize: Integer; Language: Word = 0); inline;
+    procedure Delete(const ResName: string; ResType: PChar; Language: Word = 0); inline;
+
+    procedure Commit; inline;
+    procedure Discard; inline;
+  end;
+
 implementation
 
 uses
@@ -613,6 +628,38 @@ begin
   end;
   FHandled := Handled;
   Dispatch(Message);
+end;
+
+{ TSdaUpdateResourceHelper }
+
+procedure TSdaUpdateResourceHelper.BeginUpdate(const FileName: string;
+  RemoveAllResources: Boolean);
+begin
+  FHandle := BeginUpdateResource(PChar(FileName), RemoveAllResources);
+end;
+
+procedure TSdaUpdateResourceHelper.Commit;
+begin
+  if EndUpdateResource(Handle, false) then
+    FHandle := 0;
+end;
+
+procedure TSdaUpdateResourceHelper.Delete(const ResName: string; ResType: PChar;
+  Language: Word);
+begin
+  UpdateResource(Handle, ResType, PChar(ResName), Language, nil, 0);
+end;
+
+procedure TSdaUpdateResourceHelper.Discard;
+begin
+  if EndUpdateResource(Handle, true) then
+    FHandle := 0;
+end;
+
+procedure TSdaUpdateResourceHelper.Update(const ResName: string; ResType: PChar;
+  const Data; DataSize: Integer; Language: Word);
+begin
+  UpdateResource(Handle, ResType, PChar(ResName), Language, @Data, DataSize);
 end;
 
 end.
