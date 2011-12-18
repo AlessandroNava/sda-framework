@@ -28,33 +28,40 @@ function SdaRegisterWindowClass(const ObjectClass: TSdaWindowObjectClass): Boole
 
 implementation
 
+function SdaSetAssociatedObject(hWnd: HWND; const Obj: TObject): TObject; inline;
+begin
+  Result := TObject(SetWindowLongPtr(hWnd, GWLP_USERDATA, NativeInt(Obj)));
+end;
+
+function SdaGetAssociatedObject(hWnd: HWND): TObject; inline;
+begin
+  Result := TObject(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+end;
+
 function SdaWindowProc(hWnd: HWND; uMsg: UINT; wParam: WPARAM;
   lParam: LPARAM): LRESULT; stdcall;
 var
-  nObj, nClass: Integer;
+  nClass: Integer;
   ObjectClass: TSdaWindowObjectClass;
-  Obj: TSdaWindowObject;
+  Obj: TObject;
   Msg: TMessage;
 begin
-  nObj := GetClassLongPtr(hWnd, GCL_CBWNDEXTRA) - SizeOf(Pointer);
-  if nObj >= 0 then
+  if uMsg = WM_NCCREATE then
   begin
-    if uMsg = WM_NCCREATE then
+    nClass := GetClassLongPtr(hWnd, GCL_CBCLSEXTRA) - SizeOf(Pointer);
+    if nClass >= 0 then
     begin
-      nClass := GetClassLongPtr(hWnd, GCL_CBCLSEXTRA) - SizeOf(Pointer);
-      if nClass >= 0 then
+      ObjectClass := Pointer(GetClassLongPtr(hWnd, nClass));
+      if Assigned(ObjectClass) then
       begin
-        ObjectClass := Pointer(GetClassLongPtr(hWnd, nClass));
-        if Assigned(ObjectClass) then
-        begin
-          Obj := ObjectClass.Create;
-          Obj.Handle := hWnd;
-          SetWindowLongPtr(hWnd, nObj, NativeInt(Obj));
-        end;
+        Obj := ObjectClass.Create;
+        if Obj is TSdaWindowObject then
+          TSdaWindowObject(Obj).Handle := hWnd;
+        SdaSetAssociatedObject(hWnd, Obj);
       end;
     end;
 
-    Obj := Pointer(GetWindowLongPtr(hWnd, nObj));
+    Obj := SdaGetAssociatedObject(hWnd);
     if Assigned(Obj) then
     begin
       Msg.Msg := uMsg;
@@ -67,7 +74,7 @@ begin
 
     if uMsg = WM_NCDESTROY then
     begin
-      Obj := Pointer(SetWindowLongPtr(hWnd, nObj, NativeInt(nil)));
+      Obj := SdaSetAssociatedObject(hWnd, nil);
       Obj.Free;
     end;
   end else Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -75,8 +82,6 @@ end;
 
 { WndClass.cbClsExtra
     Збільшуємо на SizeOf(Pointer) - для зберігання вказівника на клас
-  WndClass.cbWndExtra
-    Збільшуємо на SizeOf(Pointer) - для зберігання вказівника на об'єкт
   WndClass.lpfnWndProc
     На вході - вказівник на віконну процедуру типу; замінюємо на DefWindowProc,
     ігноруючи початкове значення. Спочатку встановлюємо DefWindowProc для
@@ -95,7 +100,6 @@ begin
   if not ObjectClass.GetWindowClass(WndClass) then Exit(false);
 
   WndClass.cbClsExtra := WndClass.cbClsExtra + SizeOf(Pointer);
-  WndClass.cbWndExtra := WndClass.cbWndExtra + SizeOf(Pointer);
   WndClass.lpfnWndProc := @DefWindowProc;
   Result := RegisterClassEx(WndClass) <> 0;
   if Result then
