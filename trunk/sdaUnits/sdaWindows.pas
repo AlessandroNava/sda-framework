@@ -22162,7 +22162,15 @@ const
   wintrust  = 'wintrust.dll';
   msimg32   = 'msimg32.dll';
 
+function CoCreateGuid(out guid: TGUID): HResult; stdcall;
+
+function GetUserDefaultUILanguage: LANGID; stdcall;
+
 implementation
+
+function CoCreateGuid; external 'ole32.dll' name 'CoCreateGuid';
+
+function GetUserDefaultUILanguage; external 'kernel32.dll' name 'GetUserDefaultUILanguage';
 
 { From Types.pas }
 
