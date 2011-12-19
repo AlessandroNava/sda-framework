@@ -5,10 +5,14 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaSysUtils, {$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}sdaWindows, sdaActiveX{$ENDIF};
+  sdaSysUtils{$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}, sdaWindows, sdaActiveX{$ENDIF};
 
 type
   TSdaStrings = class(TObject)
+  private
+    FDelimiter: Char;
+    function GetDelimitedText: string;
+    procedure SetDelimitedText(const Value: string);
   protected
     function GetCount: Integer; virtual; abstract;
     function GetStrings(Index: Integer): string; virtual; abstract;
@@ -25,9 +29,13 @@ type
     procedure Delete(Index: Integer); virtual; abstract;
     procedure Insert(Index: Integer; const Value: string); virtual; abstract;
     procedure Add(const Value: string); virtual; abstract;
+    procedure Clear; virtual;
 
     property LineSeparator: string read GetLineSeparator write SetLineSeparator;
     property Text: string read GetText write SetText;
+
+    property Delimiter: Char read FDelimiter write FDelimiter;
+    property DelimitedText: string read GetDelimitedText write SetDelimitedText;
   end;
 
   TSdaStringList = class(TSdaStrings)
@@ -473,6 +481,42 @@ begin
   Pos := Seek(0, soCurrent);
   Result := Seek(0, soEnd);
   Seek(Pos, soBeginning);
+end;
+
+{ TSdaStrings }
+
+procedure TSdaStrings.Clear;
+begin
+  Count := 0;
+end;
+
+function TSdaStrings.GetDelimitedText: string;
+var
+  i: Integer;
+begin
+  if Count <= 0 then Exit('');
+  Result := Strings[0];
+  for i := 1 to Count - 1 do
+    Result := Result + Delimiter + Strings[i];
+end;
+
+procedure TSdaStrings.SetDelimitedText(const Value: string);
+var
+  i, j: Integer;
+  s: string;
+begin
+  Clear;
+  i := 1; j := 1;
+  while j < Length(Value) do
+  begin
+    if Value[j] = Delimiter then
+    begin
+      s := Copy(Value, i, j - i);
+      i := j + 1;
+      if s <> '' then Add(s);
+    end;
+    Inc(j);
+  end;
 end;
 
 end.
