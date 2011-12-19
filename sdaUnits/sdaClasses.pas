@@ -55,6 +55,9 @@ type
     procedure Add(const Value: string); override;
     procedure Delete(Index: Integer); override;
     procedure Insert(Index: Integer; const Value: string); override;
+
+    {$MESSAGE WARN 'This method if stub, it should be rewritten'}
+    procedure LoadFromFile(const FileName: string);
   end;
 
   TSeekOrigin = (soBeginning, soCurrent, soEnd);
@@ -180,6 +183,25 @@ begin
     FStrings[i] := FStrings[i - 1];
   if Index > High(FStrings) then Index := High(FStrings);
   FStrings[Index] := Value;
+end;
+
+procedure TSdaStringList.LoadFromFile(const FileName: string);
+var
+  f: TextFile;
+  s: string;
+begin
+  Clear;
+  AssignFile(f, FileName);
+  try
+    Reset(f);
+    while not Eof(f) do
+    begin
+      Readln(f, s);
+      Add(s);
+    end;
+  finally
+    CloseFile(f);
+  end;
 end;
 
 procedure TSdaStringList.SetCount(const Value: Integer);

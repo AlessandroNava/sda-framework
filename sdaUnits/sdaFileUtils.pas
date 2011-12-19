@@ -29,6 +29,10 @@ type
     FindHandle: THandle platform;
     FindData: TWin32FindData platform;
     property TimeStamp: TDateTime read GetTimeStamp;
+
+    function First(const Path: string; Attr: Integer): Boolean; inline;
+    function Next: Boolean; inline;
+    procedure Close; inline;
   end;
 
   TDateTimeInfoRec = record
@@ -458,6 +462,21 @@ end;
 
 { TSearchRec }
 
+procedure TSearchRec.Close;
+begin
+  FindClose(Self);
+end;
+
+function TSearchRec.Next: Boolean;
+begin
+  Result := FindNext(Self) = 0;
+end;
+
+function TSearchRec.First(const Path: string; Attr: Integer): Boolean;
+begin
+  Result := FindFirst(Path, Attr, Self) = 0;
+end;
+
 function TSearchRec.GetTimeStamp: TDateTime;
 begin
   Result := InternalFileTimeToDateTime(FindData.ftLastWriteTime);
@@ -641,7 +660,7 @@ begin
   Handle := FindFirstFile(lpFileName, FindData);
   if Handle <> INVALID_HANDLE_VALUE then
   begin
-    Windows.FindClose(Handle);
+    sdaWindows.FindClose(Handle);
     if lpFileInformation <> nil then
     begin
       Move(FindData, lpFileInformation^, SizeOf(TWin32FileAttributeData));
@@ -729,7 +748,7 @@ function FileExists(const FileName: string; FollowLink: Boolean = True): Boolean
     LHandle := FindFirstFile(PChar(Filename), FindData);
     if LHandle <> INVALID_HANDLE_VALUE then
     begin
-      Windows.FindClose(LHandle);
+      sdaWindows.FindClose(LHandle);
       Result := FindData.dwFileAttributes and FILE_ATTRIBUTE_DIRECTORY = 0;
     end
     else
@@ -992,7 +1011,7 @@ procedure FindClose(var F: TSearchRec);
 begin
   if F.FindHandle <> INVALID_HANDLE_VALUE then
   begin
-    Windows.FindClose(F.FindHandle);
+    sdaWindows.FindClose(F.FindHandle);
     F.FindHandle := INVALID_HANDLE_VALUE;
   end;
 end;
@@ -1001,7 +1020,7 @@ function DeleteFile(const FileName: string): Boolean;
 var
   Flags, LastError: Cardinal;
 begin
-  Result := Windows.DeleteFile(PChar(FileName));
+  Result := sdaWindows.DeleteFile(PChar(FileName));
 
   if not Result then
   begin
@@ -1331,7 +1350,7 @@ procedure InitDriveSpacePtr;
 var
   Kernel: THandle;
 begin
-  Kernel := GetModuleHandle(Windows.Kernel32);
+  Kernel := GetModuleHandle(sdaWindows.Kernel32);
   if Kernel <> 0 then
 {$IFDEF UNICODE}
     @GetDiskFreeSpaceEx := GetProcAddress(Kernel, 'GetDiskFreeSpaceExW');
