@@ -22,6 +22,7 @@ type
     procedure Delete(Index: Integer); virtual;
     procedure Remove(const Item: T; const Compare: TSdaListCompare<T>); virtual;
     procedure Clear; virtual;
+    function IndexOf(const Value: T; const Compare: TSdaListCompare<T>): Integer; virtual;
 
     procedure Sort(const Compare: TSdaListCompare<T>);
   end;
@@ -71,6 +72,16 @@ begin
   Result := FItems[Index];
 end;
 
+function TSdaList<T>.IndexOf(const Value: T; const Compare: TSdaListCompare<T>): Integer;
+var
+  i: Integer;
+begin
+  if not Assigned(Compare) then Exit(-1);
+  for i := 0 to High(FItems) do
+    if Compare(Value, FItems[i]) = 0 then Exit(i);
+  Result := -1;
+end;
+
 procedure TSdaList<T>.Remove(const Item: T; const Compare: TSdaListCompare<T>);
 var
   i: Integer;
@@ -114,15 +125,28 @@ end;
 procedure TSdaObjectList<T>.Clear;
 var
   i: Integer;
+  tmp: T;
 begin
-  for i := 0 to High(FItems) do
-    FItems[i].Free;
+  if OwnObjects then
+  begin
+    for i := 0 to High(FItems) do
+    begin
+      tmp := FItems[i]; FItems[i] := nil;
+      tmp.Free;
+    end;
+  end;
   inherited Clear;
 end;
 
 procedure TSdaObjectList<T>.Delete(Index: Integer);
+var
+  tmp: T;
 begin
-  FItems[Index].Free;
+  if OwnObjects then
+  begin
+    tmp := FItems[Index]; FItems[Index] := nil;
+    tmp.Free;
+  end;
   inherited;
 end;
 

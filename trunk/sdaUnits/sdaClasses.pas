@@ -5,7 +5,10 @@ interface
 {$INCLUDE 'sda.inc'}
 
 uses
-  sdaSysUtils{$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}, sdaWindows, sdaActiveX{$ENDIF};
+  sdaWindows, sdaSysUtils, sdaFileUtils{$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}, sdaWindows, sdaActiveX{$ENDIF};
+
+type
+  TNotifyEvent = procedure(Sender: TObject) of object;
 
 type
   TSdaStrings = class(TObject)
@@ -29,7 +32,9 @@ type
     procedure Delete(Index: Integer); virtual; abstract;
     procedure Insert(Index: Integer; const Value: string); virtual; abstract;
     procedure Add(const Value: string); virtual; abstract;
+    procedure AddStrings(const Strings: TSdaStrings); virtual;
     procedure Clear; virtual;
+    function IndexOf(const Value: string): Integer; virtual;
 
     property LineSeparator: string read GetLineSeparator write SetLineSeparator;
     property Text: string read GetText write SetText;
@@ -64,6 +69,7 @@ type
 
   EReadError = class(Exception);
   EWriteError = class(Exception);
+  EMemoryStreamError = class(Exception);
 
   TSdaStream = class({$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}TInterfacedObject, IStream,
     ISequentialStream{$ELSE}TObject{$ENDIF})
@@ -106,11 +112,11 @@ type
     procedure SetPosition(const Pos: Int64);
   strict protected
     function GetSize: Int64; virtual;
-    procedure SetSize(const NewSize: Int64); virtual;
+    procedure SetSize(NewSize: Int64); virtual;
   public
     function Read(var Buffer; Count: Longint): Longint; virtual; abstract;
     function Write(const Buffer; Count: Longint): Longint; virtual; abstract;
-    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; virtual;
+    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; virtual;
     procedure ReadBuffer(var Buffer; Count: Longint);
     procedure WriteBuffer(const Buffer; Count: Longint);
     function CopyFrom(Source: TSdaStream; Count: Int64): Int64;
@@ -119,6 +125,51 @@ type
 
     procedure WriteString(const Str: RawByteString);
     function ReadString: RawByteString;
+  end;
+
+const
+  MemoryDelta = $2000; { Must be a power of 2 }
+
+type
+  TSdaMemoryStream = class(TSdaStream {$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}, IStream,
+    ISequentialStream{$ENDIF})
+  private
+    FMemory: Pointer;
+    FSize, FPosition: Longint;
+    FCapacity: Longint;
+    procedure SetCapacity(NewCapacity: Longint);
+  protected
+    procedure SetPointer(Ptr: Pointer; Size: Longint);
+    function Realloc(var NewCapacity: Longint): Pointer; virtual;
+    property Capacity: Longint read FCapacity write SetCapacity;
+    procedure SetSize(NewSize: Int64); override;
+  public
+    destructor Destroy; override;
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; override;
+    property Memory: Pointer read FMemory;
+    procedure Clear;
+  end;
+
+const
+  fmCreate = $FF00;
+
+type
+  TSdaFileStream = class(TSdaStream {$IFDEF SDACLASSES_IMPLEMENT_ISTREAM}, IStream,
+    ISequentialStream{$ENDIF})
+  strict private
+    FHandle: THandle;
+  strict protected
+    procedure SetSize(NewSize: Int64); override;
+  public
+    constructor Create(const FileName: string; Mode: LongWord);
+    destructor Destroy; override;
+    property Handle: THandle read FHandle;
+
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Int64; Origin: TSeekOrigin): Int64; override;
   end;
 
 implementation
@@ -437,7 +488,7 @@ begin
   SetLength(Result, len);
 end;
 
-function TSdaStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
+function TSdaStream.Seek(Offset: Int64; Origin: TSeekOrigin): Int64;
 begin
   Result := 0;
 end;
@@ -447,7 +498,7 @@ begin
   Seek(Pos, soBeginning);
 end;
 
-procedure TSdaStream.SetSize(const NewSize: Int64);
+procedure TSdaStream.SetSize(NewSize: Int64);
 begin
 end;
 
@@ -507,6 +558,15 @@ end;
 
 { TSdaStrings }
 
+procedure TSdaStrings.AddStrings(const Strings: TSdaStrings);
+var
+  i: Integer;
+begin
+  if not Assigned(Strings) then Exit;
+  for i := 0 to Strings.Count do
+    Add(Strings[i]);
+end;
+
 procedure TSdaStrings.Clear;
 begin
   Count := 0;
@@ -520,6 +580,15 @@ begin
   Result := Strings[0];
   for i := 1 to Count - 1 do
     Result := Result + Delimiter + Strings[i];
+end;
+
+function TSdaStrings.IndexOf(const Value: string): Integer;
+var
+  i: Integer;
+begin
+  for i := 0 to Count - 1 do
+    if Strings[i] = Value then Exit(i);
+  Result := -1;
 end;
 
 procedure TSdaStrings.SetDelimitedText(const Value: string);
@@ -539,6 +608,148 @@ begin
     end;
     Inc(j);
   end;
+end;
+
+{ TSdaFileStream }
+
+constructor TSdaFileStream.Create(const FileName: string; Mode: LongWord);
+begin
+  inherited Create;
+  FHandle := FileOpen(FileName, Mode);
+end;
+
+destructor TSdaFileStream.Destroy;
+begin
+  FileClose(FHandle);
+  inherited;
+end;
+
+function TSdaFileStream.Read(var Buffer; Count: Integer): Longint;
+begin
+  Result := FileRead(FHandle, Buffer, Count);
+end;
+
+function TSdaFileStream.Write(const Buffer; Count: Integer): Longint;
+begin
+  Result := FileWrite(FHandle, Buffer, Count);
+end;
+
+function TSdaFileStream.Seek(Offset: Int64; Origin: TSeekOrigin): Int64;
+begin
+  Result := FileSeek(FHandle, Offset, Integer(Origin));
+end;
+
+procedure TSdaFileStream.SetSize(NewSize: Int64);
+begin
+end;
+
+{ TSdaMemoryStream }
+
+procedure TSdaMemoryStream.SetCapacity(NewCapacity: Integer);
+begin
+  SetPointer(Realloc(NewCapacity), FSize);
+  FCapacity := NewCapacity;
+end;
+
+procedure TSdaMemoryStream.SetPointer(Ptr: Pointer; Size: Integer);
+begin
+  FMemory := Ptr;
+  FSize := Size;
+end;
+
+procedure TSdaMemoryStream.SetSize(NewSize: Int64);
+var
+  OldPosition: Longint;
+begin
+  OldPosition := FPosition;
+  SetCapacity(NewSize);
+  FSize := NewSize;
+  if OldPosition > NewSize then Seek(0, soEnd);
+end;
+
+function TSdaMemoryStream.Write(const Buffer; Count: Integer): Longint;
+var
+  Pos: Longint;
+begin
+  if (FPosition >= 0) and (Count >= 0) then
+  begin
+    Pos := FPosition + Count;
+    if Pos > 0 then
+    begin
+      if Pos > FSize then
+      begin
+        if Pos > FCapacity then
+          SetCapacity(Pos);
+        FSize := Pos;
+      end;
+      System.Move(Buffer, Pointer(Longint(FMemory) + FPosition)^, Count);
+      FPosition := Pos;
+      Result := Count;
+      Exit;
+    end;
+  end;
+  Result := 0;
+end;
+
+procedure TSdaMemoryStream.Clear;
+begin
+  SetCapacity(0);
+  FSize := 0;
+  FPosition := 0;
+end;
+
+destructor TSdaMemoryStream.Destroy;
+begin
+  Clear;
+  inherited Destroy;
+end;
+
+function TSdaMemoryStream.Read(var Buffer; Count: Integer): Longint;
+begin
+  if (FPosition >= 0) and (Count >= 0) then
+  begin
+    Result := FSize - FPosition;
+    if Result > 0 then
+    begin
+      if Result > Count then Result := Count;
+      Move(Pointer(Longint(FMemory) + FPosition)^, Buffer, Result);
+      Inc(FPosition, Result);
+      Exit;
+    end;
+  end;
+  Result := 0;
+end;
+
+function TSdaMemoryStream.Realloc(var NewCapacity: Integer): Pointer;
+begin
+  if (NewCapacity > 0) and (NewCapacity <> FSize) then
+    NewCapacity := (NewCapacity + (MemoryDelta - 1)) and not (MemoryDelta - 1);
+  Result := Memory;
+  if NewCapacity <> FCapacity then
+  begin
+    if NewCapacity = 0 then
+    begin
+      FreeMem(Memory);
+      Result := nil;
+    end else
+    begin
+      if Capacity = 0 then
+        GetMem(Result, NewCapacity)
+      else
+        ReallocMem(Result, NewCapacity);
+      if Result = nil then raise EMemoryStreamError.Create('Memory stream error');
+    end;
+  end;
+end;
+
+function TSdaMemoryStream.Seek(Offset: Int64; Origin: TSeekOrigin): Int64;
+begin
+  case Origin of
+    soBeginning: FPosition := Offset;
+    soCurrent: Inc(FPosition, Offset);
+    soEnd: FPosition := FSize + Offset;
+  end;
+  Result := FPosition;
 end;
 
 end.
