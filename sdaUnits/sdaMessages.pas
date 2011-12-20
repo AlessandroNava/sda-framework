@@ -1,7 +1,6 @@
 unit sdaMessages;
 
 {$A-}
-{$WEAKPACKAGEUNIT}
 
 interface
 

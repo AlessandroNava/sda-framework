@@ -60,24 +60,24 @@ begin
         SdaSetAssociatedObject(hWnd, Obj);
       end;
     end;
+  end;
 
-    Obj := SdaGetAssociatedObject(hWnd);
-    if Assigned(Obj) then
-    begin
-      Msg.Msg := uMsg;
-      Msg.WParam := wParam;
-      Msg.LParam := lParam;
-      Msg.Result := 0;
-      Obj.Dispatch(Msg);
-      Result := Msg.Result;
-    end else Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
-
-    if uMsg = WM_NCDESTROY then
-    begin
-      Obj := SdaSetAssociatedObject(hWnd, nil);
-      Obj.Free;
-    end;
+  Obj := SdaGetAssociatedObject(hWnd);
+  if Assigned(Obj) then
+  begin
+    Msg.Msg := uMsg;
+    Msg.WParam := wParam;
+    Msg.LParam := lParam;
+    Msg.Result := 0;
+    Obj.Dispatch(Msg);
+    Result := Msg.Result;
   end else Result := DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+  if uMsg = WM_NCDESTROY then
+  begin
+    Obj := SdaSetAssociatedObject(hWnd, nil);
+    Obj.Free;
+  end;
 end;
 
 { WndClass.cbClsExtra

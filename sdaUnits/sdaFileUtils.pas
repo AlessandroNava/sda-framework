@@ -132,6 +132,8 @@ function FileSeek(Handle: THandle; const Offset: Int64; Origin: Integer): Int64;
 
 procedure FileClose(Handle: THandle); inline;
 
+function FileGetContents(const FileName: string): RawByteString;
+
 { FileAge returns the date-and-time stamp of the specified file. The return
   value can be converted to a TDateTime value using the FileDateToDateTime
   function. The return value is -1 if the file does not exist. This version
@@ -1439,6 +1441,27 @@ end;
 function RemoveDir(const Dir: string): Boolean;
 begin
   Result := RemoveDirectory(PChar(Dir));
+end;
+
+function FileGetContents(const FileName: string): RawByteString;
+var
+  fh: THandle;
+  buf: array [Word] of AnsiChar;
+  n: Integer;
+begin
+  fh := FileOpen(FileName, fmOpenRead or fmShareDenyWrite);
+  Result := '';
+  if fh = INVALID_HANDLE_VALUE then Exit;
+  try
+    repeat
+      n := FileRead(fh, buf, Length(buf));
+      if n <= 0 then Break;
+      if n = Length(buf) then Result := Result + buf
+        else Result := Result + Copy(buf, 1, n);
+    until n <= 0;
+  finally
+    FileClose(fh);
+  end;
 end;
 
 initialization
