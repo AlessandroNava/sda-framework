@@ -36,6 +36,7 @@ type
     procedure Run;
     property Terminated: Boolean read GetTerminated write SetTerminated;
     procedure Terminate;
+    procedure ProcessMessages; virtual;
 
     function BeginModal(Wnd: HWND): Integer;
     procedure EndModal(ModalResult: Integer);
@@ -160,6 +161,28 @@ begin
     h := GetParent(wnd);
   until h = 0;
   Result := sdaWindows.IsDialogMessage(wnd, Message);
+end;
+
+procedure TSdaApplication.ProcessMessages;
+var
+  Result: Boolean;
+  Unicode: Boolean;
+  Message: TMsg;
+begin
+  while true do
+  begin
+    if PeekMessage(Message, 0, 0, 0, PM_NOREMOVE) then
+    begin
+      Unicode := (Message.hwnd = 0) or IsWindowUnicode(Message.hwnd);
+      if Unicode then Result := PeekMessageW(Message, 0, 0, 0, PM_REMOVE)
+                 else Result := PeekMessageA(Message, 0, 0, 0, PM_REMOVE);
+      if Result then Break;
+    end else
+    begin
+      CheckApplicationTerminate;
+      Break;
+    end;
+  end;
 end;
 
 function TSdaApplication.TranslateAccelerator(var Message: TMsg): Boolean;
