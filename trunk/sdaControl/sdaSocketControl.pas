@@ -668,7 +668,7 @@ var
   sz: Integer;
 begin
   if Handle = INVALID_SOCKET then Exit;
-  res := Value; sz := 0;
+  res := Value; sz := SizeOf(res);
   WSACheck(setsockopt(FHandle, IPPROTO_TCP, TCP_NODELAY, Pointer(@res), sz));
 end;
 
