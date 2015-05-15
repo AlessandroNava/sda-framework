@@ -1,0 +1,1 @@
+Small Delphi Application (SDA) Framework is a set of Win32 APIs wrappers to siplify creation of non-VCL GUI application
